@@ -6,6 +6,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BASE_URL from "./config";
+import { productNameMatchesSearch, normalizeProductDisplayName } from "../utils/productSearch";
 
 const ProductPage = () => {
   // Get selected company from parent route context
@@ -23,6 +24,7 @@ const ProductPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedProductIds, setSelectedProductIds] = useState([]);
 const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+const [statusFilter, setStatusFilter] = useState("all");
 
 
 const errorToastShown = useRef(false); // to avoid repeated error toasts
@@ -54,7 +56,8 @@ const handleUpdateProduct = async () => {
     if (response.status === 200) {
       toast.success("Product updated successfully");
       setEditProduct(null);
-      fetchProducts();
+      const companyId = getCompanyId();
+      if (companyId) fetchProducts(companyId, statusFilter);
     }
   } catch (error) {
     toast.error("Failed to update product");
@@ -70,13 +73,10 @@ const handleConfirmDelete = async () => {
     toast.success("Product deleted successfully");
     setDeleteProductId(null);
 
-    const companyId =
-      currentUser?.role === "admin"
-        ? currentUser?.companies?.[0]
-        : selectedCompany?.id;
+    const companyId = getCompanyId();
 
     if (companyId) {
-      fetchProducts(companyId); // ✅ Pass the correct company ID
+      fetchProducts(companyId, statusFilter);
     }
 
   } catch (error) {
@@ -146,7 +146,7 @@ useEffect(() => {
 }, []);
 
 
-const fetchProducts = async (companyId) => {
+const fetchProducts = async (companyId, status = "all") => {
   if (!companyId) {
     setProducts([]);
     return;
@@ -154,7 +154,7 @@ const fetchProducts = async (companyId) => {
 
   try {
     const response = await axios.get(
-      `${BASE_URL}/api/get_products/?company_id=${companyId}`,
+      `${BASE_URL}/api/get_products/?company_id=${companyId}&status=${status}`,
       config
     );
     if (response.status === 200) {
@@ -166,21 +166,14 @@ const fetchProducts = async (companyId) => {
   }
 };
 
+const getCompanyId = () => selectedCompany?.id;
+
 
 useEffect(() => {
   const fetchCurrentUser = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/api/users/me/`, config);
       setCurrentUser(res.data);
-
-      const companyIdToUse = res.data.role === "admin"
-        ? res.data.companies[0] // admin: use first company ID
-        : selectedCompany?.id;
-
-      if (companyIdToUse) {
-        fetchWarehouses(companyIdToUse);
-         fetchProducts(companyIdToUse); 
-      }
     } catch (err) {
       console.error("Failed to fetch user info:", err);
       toast.error("Failed to get user info");
@@ -191,16 +184,27 @@ useEffect(() => {
 }, []);
 
  useEffect(() => {
-  fetchProducts();
+  const companyId = getCompanyId();
+  if (!companyId) return;
 
-  if (currentUser?.role !== "admin" && selectedCompany?.id) {
-    fetchWarehouses(selectedCompany.id);
-    fetchProducts(selectedCompany.id);
-  }
-
+  fetchWarehouses(companyId);
+  fetchProducts(companyId, statusFilter);
   setProductName("");
   setSelectedWarehouseIds([]);
+  setSelectedProductIds([]);
+  setCurrentPage(1);
 }, [selectedCompany]);
+
+const handleStatusFilterChange = (value) => {
+  if (!value) return;
+  setStatusFilter(value);
+  setCurrentPage(1);
+  setSelectedProductIds([]);
+  const companyId = getCompanyId();
+  if (companyId) {
+    fetchProducts(companyId, value);
+  }
+};
 
 
   useEffect(() => {
@@ -215,19 +219,20 @@ const handleAddProduct = async () => {
     return;
   }
 
-  const companyId =
-    currentUser.role === "admin"
-      ? currentUser.companies?.[0]
-      : selectedCompany?.id;
+  const companyId = getCompanyId();
 
   if (!companyId) {
     toast.error("Company ID is missing");
     return;
   }
 
+  const normalizedNewName = normalizeProductDisplayName(productName);
+  if (!normalizedNewName) return;
+
   const existingProduct = products.find(
     (product) =>
-      product.product_name.toLowerCase() === productName.toLowerCase()
+      normalizeProductDisplayName(product.product_name).toLowerCase() ===
+      normalizedNewName.toLowerCase()
   );
   if (existingProduct) {
     toast.error("Product already added");
@@ -235,7 +240,7 @@ const handleAddProduct = async () => {
   }
 
   const payload = {
-    product_name: productName,
+    product_name: normalizedNewName,
     warehouses: selectedWarehouseIds,
     company_id: companyId,
   };
@@ -255,7 +260,7 @@ const handleAddProduct = async () => {
 
   // ✅ Refresh the product list
   if (companyId) {
-    fetchProducts(companyId);
+    fetchProducts(companyId, statusFilter);
   }
 
   // ✅ Optionally reset the form
@@ -264,7 +269,11 @@ const handleAddProduct = async () => {
 
 } catch (error) {
   console.error("Add product failed:", error);
-  toast.error("Failed to add product");
+  const message =
+    error.response?.data?.message ||
+    error.response?.data?.product_name?.[0] ||
+    "Failed to add product";
+  toast.error(message);
 }
 
 };
@@ -282,10 +291,17 @@ const handleAddProduct = async () => {
 
   // ... (rest of your handlers remain the same) ...
 
-  // Filter products by search (still needed)
-  const filteredProducts = products.filter((p) =>
-    p.product_name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter products by search and status (client-side safety net)
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = productNameMatchesSearch(p.product_name, search);
+    if (statusFilter === "active") {
+      return matchesSearch && p.is_active !== false;
+    }
+    if (statusFilter === "disabled") {
+      return matchesSearch && p.is_active === false;
+    }
+    return matchesSearch;
+  });
 
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * rowsPerPage,
@@ -324,6 +340,14 @@ const handleSelectAll = () => {
   }
 };
 
+const handleSelectAllFiltered = () => {
+  setSelectedProductIds(filteredProducts.map((p) => p.id));
+};
+
+const handleDeselectAll = () => {
+  setSelectedProductIds([]);
+};
+
 
 
 const handleRowCheckboxChange = (productId) => {
@@ -348,17 +372,37 @@ const confirmBulkDelete = async () => {
     setSelectedProductIds([]);
     setShowBulkDeleteModal(false);
 
-    const companyId =
-      currentUser?.role === "admin"
-        ? currentUser?.companies?.[0]
-        : selectedCompany?.id;
+    const companyId = getCompanyId();
 
     if (companyId) {
-      fetchProducts(companyId);
+      fetchProducts(companyId, statusFilter);
     }
   } catch (error) {
     console.error("Bulk delete failed:", error);
     toast.error("Failed to delete selected products");
+  }
+};
+
+const handleBulkToggleStatus = async (action) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/api/products/bulk-toggle-status/`,
+      { product_ids: selectedProductIds, action },
+      config
+    );
+
+    const count = response.data.updated ?? 0;
+    toast.success(`${count} product${count === 1 ? "" : "s"} ${action === "enable" ? "enabled" : "disabled"}`);
+    setSelectedProductIds([]);
+
+    const companyId = getCompanyId();
+
+    if (companyId) {
+      fetchProducts(companyId, statusFilter);
+    }
+  } catch (error) {
+    console.error(`Bulk ${action} failed:`, error);
+    toast.error(`Failed to ${action} selected products`);
   }
 };
 
@@ -417,9 +461,8 @@ const confirmBulkDelete = async () => {
 
       <div className="bg-white dark:bg-gray-800 p-4 rounded shadow w-full">
    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-  {/* Left Side: Search + Bulk Actions */}
-  <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-    {/* Search Input */}
+  {/* Left Side: Search + Filter + Bulk Actions */}
+  <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto flex-wrap">
     <input
       type="text"
       placeholder="Search..."
@@ -427,26 +470,64 @@ const confirmBulkDelete = async () => {
       onChange={(e) => setSearch(e.target.value)}
       className="border rounded px-3 py-2 text-base w-full sm:w-64 dark:bg-gray-700 dark:text-white dark:border-gray-600"
     />
+    {search.trim() && (
+      <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+        {filteredProducts.length} of {products.length}
+      </span>
+    )}
 
-    {/* Bulk Actions Dropdown */}
+    <select
+      value={statusFilter}
+      onChange={(e) => handleStatusFilterChange(e.target.value)}
+      className="border rounded px-3 py-2 text-base dark:bg-gray-700 dark:text-white dark:border-gray-600"
+    >
+      <option value="" disabled>
+        Product Filter
+      </option>
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="disabled">Disabled</option>
+    </select>
+
     <select
       onChange={(e) => {
-       if (e.target.value === "delete") {
-  if (selectedProductIds.length === 0) {
-    toast.warn("No products selected");
-    e.target.value = "";
-    return;
-  }
-  setShowBulkDeleteModal(true);
-  e.target.value = "";
-}
-
+        if (e.target.value === "select_all") {
+          handleSelectAllFiltered();
+          e.target.value = "";
+        } else if (e.target.value === "deselect_all") {
+          handleDeselectAll();
+          e.target.value = "";
+        } else if (e.target.value === "delete") {
+          if (selectedProductIds.length === 0) {
+            toast.warn("No products selected");
+            e.target.value = "";
+            return;
+          }
+          setShowBulkDeleteModal(true);
+          e.target.value = "";
+        } else if (e.target.value === "enable" || e.target.value === "disable") {
+          if (selectedProductIds.length === 0) {
+            toast.warn("No products selected");
+            e.target.value = "";
+            return;
+          }
+          handleBulkToggleStatus(e.target.value);
+          e.target.value = "";
+        }
       }}
       className="border rounded px-3 py-2 text-base dark:bg-gray-700 dark:text-white dark:border-gray-600"
     >
       <option value="">Bulk Actions</option>
+      <option value="select_all">Select All</option>
+      <option value="deselect_all">Deselect All</option>
+      <option value="enable">Enable Selected</option>
+      <option value="disable">Disable Selected</option>
       <option value="delete">Delete</option>
     </select>
+
+    <span className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
+      {selectedProductIds.length} selected
+    </span>
   </div>
 
   {/* Right Side: Rows per Page */}
@@ -488,7 +569,9 @@ const confirmBulkDelete = async () => {
             </thead>
             <tbody>
               {paginatedProducts.length > 0 ? (
-                paginatedProducts.map((product, idx) => (
+                paginatedProducts.map((product, idx) => {
+                  const isDisabled = product.is_active === false;
+                  return (
                   <tr
                     key={idx}
                     className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -501,24 +584,36 @@ const confirmBulkDelete = async () => {
     />
   </td>
   <td className="px-3 py-3 border-r border-gray-300 dark:border-gray-600">
-    {product.product_name}
+    <span className="inline-flex items-center gap-2">
+      {product.product_name}
+      {isDisabled && (
+        <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
+          Disabled
+        </span>
+      )}
+    </span>
   </td>
   <td className="px-3 py-3 text-right space-x-4">
     <button
-      onClick={() => handleEditClick(product)}
-      className="text-blue-600 dark:text-blue-400"
+      type="button"
+      onClick={isDisabled ? undefined : () => handleEditClick(product)}
+      className={isDisabled ? "text-gray-400 cursor-not-allowed" : "text-blue-600 dark:text-blue-400"}
+      aria-disabled={isDisabled}
     >
       <FaPen size={16} />
     </button>
     <button
-      onClick={() => handleDeleteClick(product.id)}
-      className="text-red-600 dark:text-red-400"
+      type="button"
+      onClick={isDisabled ? undefined : () => handleDeleteClick(product.id)}
+      className={isDisabled ? "text-gray-400 cursor-not-allowed" : "text-red-600 dark:text-red-400"}
+      aria-disabled={isDisabled}
     >
       <FaTrash size={16} />
     </button>
   </td>
                   </tr>
-                ))
+                );
+                })
               ) : (
                 <tr>
                   <td

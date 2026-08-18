@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import BASE_URL from './config';
+import { productNameMatchesSearch } from '../utils/productSearch';
 
 
 const ProductWarehouse = () => {
@@ -10,8 +11,6 @@ const ProductWarehouse = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [warehouses, setWarehouses] = useState([]);
   const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState('');
-  const [users, setUsers] = useState([]);
   const { selectedCompany } = useOutletContext();
 
 
@@ -78,9 +77,7 @@ const ProductWarehouse = () => {
 
   
   const filteredProducts = products.filter((p) =>
-    p.product_name && typeof p.product_name === "string"
-      ? p.product_name.toLowerCase().includes(searchTerm.toLowerCase())
-      : false
+    productNameMatchesSearch(p.product_name, searchTerm)
   );
   
 
@@ -140,14 +137,19 @@ const ProductWarehouse = () => {
           <label className="mr-2 font-medium">Search:</label>
           <input
             type="text"
-            placeholder="Search"
-            className="border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded px-3 py-1"
+            placeholder="Search products..."
+            className="border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded px-3 py-1 w-full sm:w-64"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
           />
+          {searchTerm.trim() && (
+            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+              {filteredProducts.length} of {products.length}
+            </span>
+          )}
         </div>
 
         <div>
@@ -187,7 +189,8 @@ const ProductWarehouse = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {visibleData.map((product, rowIndex) => (
+            {visibleData.length > 0 ? (
+            visibleData.map((product) => (
               <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-4 py-3 font-semibold">{product.product_name}</td>
                 {warehouses.map((warehouse) => (
@@ -201,7 +204,19 @@ const ProductWarehouse = () => {
                   </td>
                 ))}
               </tr>
-            ))}
+            ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={warehouses.length + 1}
+                  className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
+                >
+                  {products.length === 0
+                    ? "No products found."
+                    : "No products match your search."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

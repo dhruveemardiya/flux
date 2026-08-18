@@ -112,6 +112,9 @@
 // ,    
 //     { icon: FaUserPlus, text: "Add Role", path: "/add-role" },
 
+//     { icon: FaDatabase, text: "Data Mapping", path: "/data-mapping" },
+//     { icon: FaAddressCard, text: "Courier Tracking", path: "/courier-tracking" },
+
 //   ];
 
 //   const userSidebar = [
@@ -119,6 +122,8 @@
 //     { icon: FaUpload, text: "Upload Excel", path: "/upload-excel" },
 //     { icon: FaKey, text: "Change Password", path: "/change-password" },
 //   ];
+//   { icon: FaDatabase, text: "Data Mapping", path: "/data-mapping" },
+//   { icon: FaAddressCard, text: "Courier Tracking", path: "/courier-tracking" },
 
 //   const Sidebar = [
 //     { icon: FaUsers, text: "Users", path: "/users" },
@@ -131,6 +136,8 @@
 //     { icon: FaUpload, text: "Upload Excel", path: "/upload-excel" },
 //     { icon: FaDatabase, text: "Remove Data", path: "/remove-data" },
 //     { icon: FaKey, text: "Change Password", path: "/change-password" },
+//     { icon: FaDatabase, text: "Data Mapping", path: "/data-mapping" },
+//     { icon: FaAddressCard, text: "Courier Tracking", path: "/courier-tracking" },
 //   ];
 
 //   const sidebarItems = user?.role === "techadmin" ? techadminSidebar : (user?.role === "User" ? userSidebar : Sidebar);
@@ -403,25 +410,38 @@
 // }
 
 
-import { Outlet, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Outlet, Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
 import {
   FaBars, FaSignOutAlt, FaMoon, FaSun,
   FaBox, FaChartBar, FaUsers, FaUpload, FaKey, FaDatabase,
   FaPlus, FaCheckSquare, FaUserPlus, FaUserShield, FaTools,
   FaTimes, FaBuilding,
-  FaCog
+  FaCog, FaAddressCard
+  , FaMapMarkerAlt
 } from "react-icons/fa";
 import axios from "axios";
 import BASE_URL from "./config";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const resolveMediaUrl = (url) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${BASE_URL}${url.startsWith("/") ? url : `/${url}`}`;
+};
+
 export default function MainLayout({ user: propUser }) {
+  const location = useLocation();
   const [user, setUser] = useState(propUser || null);
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const [darkMode, setDarkMode] = useState(false);
   const [permissionsOpen, setPermissionsOpen] = useState(false);
+  const [sidebarSectionsOpen, setSidebarSectionsOpen] = useState({
+    inventory: true,
+    account: true,
+    campaign: true,
+  });
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -480,74 +500,104 @@ export default function MainLayout({ user: propUser }) {
 
 
 
-  const techadminSidebar = [
-    { icon: FaBuilding, text: "Company", path: "/company" },
-    { icon: FaUserShield, text: "Users", path: "/users" },
-    {
-      icon: FaTools,
-      text: "Permissions",
-      path: "#",
-      onClick: (e) => {
-        e.preventDefault();
-        setPermissionsOpen(!permissionsOpen);
-      },
-      subMenu: [
-        { icon: FaPlus, text: "Create Permission", path: "/create-permission" },
-        { icon: FaCheckSquare, text: "Add Permission", path: "/add-permission" },
+  const sidebarSections = useMemo(() => {
+    const campaignSection = {
+      key: "campaign",
+      title: "Campaign",
+      icon: FaAddressCard,
+        items: [
+        { icon: FaDatabase, text: "Data Mapping", path: "/data-mapping" },
+        { icon: FaAddressCard, text: "Campaign", path: "/campaign" },
+        { icon: FaAddressCard, text: "Courier Tracking", path: "/courier-tracking" },
+        { icon: FaMapMarkerAlt, text: "Track Map", path: "/track-map" },
       ],
-    },
-    { icon: FaUserPlus, text: "Add Role", path: "/add-role" },
-    { icon: FaChartBar, text: "Reports", path: "/report-dashboard" },
-    { icon: FaCog , text: "Manage Reports", path: "/report-settings" },
-    { icon: FaCog , text: "Static Reports", path: "/static-report" },
+    };
 
+    const accountItems =
+      user?.role === "User"
+        ? [{ icon: FaKey, text: "Change Password", path: "/change-password" }]
+        : [
+            { icon: FaUserShield, text: "Users", path: "/users" },
+            { icon: FaKey, text: "Change Password", path: "/change-password" },
+          ];
 
+    const inventorySection = (() => {
+      if (user?.role === "techadmin") {
+        return {
+          key: "inventory",
+          title: "Inventory",
+          icon: FaBox,
+          items: [
+            { icon: FaBuilding, text: "Company", path: "/company" },
+            {
+              icon: FaTools,
+              text: "Permissions",
+              path: "#",
+              onClick: (e) => {
+                e.preventDefault();
+                setPermissionsOpen(!permissionsOpen);
+              },
+              subMenu: [
+                { icon: FaPlus, text: "Create Permission", path: "/create-permission" },
+                { icon: FaCheckSquare, text: "Add Permission", path: "/add-permission" },
+              ],
+            },
+            { icon: FaUserPlus, text: "Add Role", path: "/add-role" },
+            { icon: FaChartBar, text: "Reports", path: "/report-dashboard" },
+            { icon: FaCog, text: "Manage Reports", path: "/report-settings" },
+            { icon: FaCog, text: "Static Reports", path: "/static-report" },
+          ],
+        };
+      }
 
-  ];
+      if (user?.role === "User") {
+        return {
+          key: "inventory",
+          title: "Inventory",
+          icon: FaBox,
+          items: [
+            { icon: FaChartBar, text: "Stock Count", path: "/stock-count" },
+            { icon: FaUpload, text: "Upload Excel", path: "/upload-excel" },
+          ],
+        };
+      }
 
-  const userSidebar = [
-    { icon: FaChartBar, text: "Stock Count", path: "/stock-count" },
-    { icon: FaUpload, text: "Upload Excel", path: "/upload-excel" },
-    { icon: FaKey, text: "Change Password", path: "/change-password" },
-  ];
+      const inventoryItems = [
+        { icon: FaUsers, text: "User - Warehouse", path: "/user-warehouse" },
+        { icon: FaBox, text: "Product", path: "/product" },
+        { icon: FaChartBar, text: "Warehouse", path: "/warehouse" },
+        { icon: FaBox, text: "Product - Warehouse", path: "/product-warehouse" },
+        { icon: FaChartBar, text: "Stock Count", path: "/stock-count" },
+        { icon: FaChartBar, text: "Stock Tally", path: "/stock-tally" },
+      ];
 
-   const adminSidebar = [ { icon: FaUsers, text: "Users", path: "/users" },
-    { icon: FaUsers, text: "User - Warehouse", path: "/user-warehouse" },
-    { icon: FaBox, text: "Product", path: "/product" },
-    { icon: FaChartBar, text: "Warehouse", path: "/warehouse" },
-    { icon: FaBox, text: "Product - Warehouse", path: "/product-warehouse" },
-    { icon: FaChartBar, text: "Stock Count", path: "/stock-count" },
-    { icon: FaChartBar, text: "Stock Tally", path: "/stock-tally" },
-    { icon: FaUpload, text: "Upload Excel", path: "/upload-excel" },
-    { icon: FaKey, text: "Change Password", path: "/change-password" },
-  ];
+      if (user?.role?.toLowerCase() === "superadmin") {
+        inventoryItems.push(
+          { icon: FaChartBar, text: "Reports", path: "/report-dashboard" },
+          { icon: FaCog, text: "Manage Reports", path: "/report-settings" },
+          { icon: FaCog, text: "Static Reports", path: "/static-report" },
+        );
+      }
 
-  const Sidebar = [
-    { icon: FaUsers, text: "Users", path: "/users" },
-    { icon: FaUsers, text: "User - Warehouse", path: "/user-warehouse" },
-    { icon: FaBox, text: "Product", path: "/product" },
-    { icon: FaChartBar, text: "Warehouse", path: "/warehouse" },
-    { icon: FaBox, text: "Product - Warehouse", path: "/product-warehouse" },
-    { icon: FaChartBar, text: "Stock Count", path: "/stock-count" },
-    { icon: FaChartBar, text: "Stock Tally", path: "/stock-tally" },
-    { icon: FaUpload, text: "Upload Excel", path: "/upload-excel" },
-    { icon: FaDatabase, text: "Remove Data", path: "/remove-data" },
-    { icon: FaKey, text: "Change Password", path: "/change-password" },
-    { icon: FaChartBar, text: "Reports", path: "/report-dashboard" },
+      inventoryItems.push(
+        { icon: FaUpload, text: "Upload Excel", path: "/upload-excel" },
+        { icon: FaDatabase, text: "Remove Data", path: "/remove-data" },
+      );
 
+      return {
+        key: "inventory",
+        title: "Inventory",
+        icon: FaBox,
+        items: inventoryItems,
+      };
+    })();
 
-    { icon: FaCog , text: "Static Reports", path: "/static-report" },
-
-  ];
-
-  const sidebarItems =
-  user?.role === "techadmin"
-    ? techadminSidebar
-    : user?.role === "User"
-    ? userSidebar
-    : user?.role === "admin"
-    ? adminSidebar
-    : Sidebar;
+    return [
+      inventorySection,
+      { key: "account", title: "Account", icon: FaUsers, items: accountItems },
+      campaignSection,
+    ].filter((section) => section.items.length > 0);
+  }, [permissionsOpen, user?.role]);
 
 
   const handleLogout = async () => {
@@ -591,6 +641,46 @@ export default function MainLayout({ user: propUser }) {
     if (permissionsOpen) setPermissionsOpen(false);
   };
 
+  const currentPath = location.pathname;
+
+  const handleLeafClick = (event, onClick) => {
+    if (onClick) onClick(event);
+    if (isMobile) {
+      toggleSidebar();
+    }
+  };
+
+  const toggleSidebarSection = (sectionKey) => {
+    setSidebarSectionsOpen((prev) => {
+      const isOpen = prev[sectionKey] !== false;
+      const nextState = Object.keys(prev).reduce((accumulator, key) => {
+        accumulator[key] = false;
+        return accumulator;
+      }, {});
+
+      if (!isOpen) {
+        nextState[sectionKey] = true;
+      }
+
+      return nextState;
+    });
+  };
+
+  const handleSectionHeaderClick = (sectionKey) => {
+    if (!sidebarOpen && !isMobile) {
+      setSidebarOpen(true);
+      setSidebarSectionsOpen(() => ({
+        inventory: false,
+        account: false,
+        campaign: false,
+        [sectionKey]: true,
+      }));
+      return;
+    }
+
+    toggleSidebarSection(sectionKey);
+  };
+
   return (
     <div className={`${darkMode ? "dark" : ""} flex flex-col min-h-screen relative`}>
       {/* Sidebar */}
@@ -602,7 +692,7 @@ export default function MainLayout({ user: propUser }) {
         <div className="flex items-center justify-between mb-6">
           {selectedCompany?.logo && (
           <img
-  src={selectedCompany.logo}
+  src={resolveMediaUrl(selectedCompany.logo)}
   alt="Company Logo"
   className={`
     transition-all duration-300 ease-in-out
@@ -649,37 +739,82 @@ export default function MainLayout({ user: propUser }) {
 
 
         {/* Sidebar Links */}
-        <nav className="flex flex-col gap-2 text-white text-sm">
-          {sidebarItems.map(({ icon: Icon, text, path, onClick, subMenu }, idx) => (
-            <div key={idx} className="flex flex-col">
-              <Link
-                to={path}
-                onClick={onClick}
-                className={`flex items-center gap-3 p-2 rounded-md hover:bg-gray-700 transition-colors ${
-                  window.location.pathname === path ? "bg-gray-700 font-semibold" : ""
-                }`}
-              >
-                <Icon />
-                {(sidebarOpen || isMobile) && <span>{text}</span>}
-              </Link>
-              {subMenu && permissionsOpen && (sidebarOpen || isMobile) && (
-                <div className="ml-6 flex flex-col gap-1 mt-1">
-                  {subMenu.map(({ icon: SubIcon, text: subText, path: subPath }, i) => (
-                    <Link
-                      key={i}
-                      to={subPath}
-                      className={`flex items-center gap-2 p-2 rounded-md hover:bg-gray-700 transition-colors ${
-                        window.location.pathname === subPath ? "bg-gray-700 font-semibold" : ""
-                      }`}
-                    >
-                      <SubIcon />
-                      <span>{subText}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+        <nav className="flex flex-col gap-3 text-white text-sm">
+          {sidebarSections.map((section) => {
+            const SectionIcon = section.icon;
+            const sectionOpen = sidebarSectionsOpen[section.key] !== false;
+
+            return (
+              <div key={section.key} className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleSectionHeaderClick(section.key)}
+                  className="flex items-center justify-between gap-3 rounded-md p-2 text-left hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <SectionIcon />
+                    {(sidebarOpen || isMobile) && <span className="truncate font-semibold">{section.title}</span>}
+                  </div>
+                </button>
+
+                {sectionOpen && (sidebarOpen || isMobile) && (
+                  <div className="ml-2 flex flex-col gap-1 border-l border-gray-700 pl-3">
+                    {section.items.map(({ icon: ItemIcon, text, path, to, onClick, subMenu }, idx) => {
+                      const destination = to || path;
+                      const isActive = currentPath === (typeof destination === "string" ? destination : destination?.pathname);
+                      return (
+                        <div key={`${section.key}-${idx}`} className="flex flex-col gap-1">
+                          {subMenu ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (onClick) {
+                                  onClick({ preventDefault: () => {} });
+                                }
+                              }}
+                              className="flex items-center gap-3 rounded-md p-2 text-left transition-colors hover:bg-gray-700"
+                            >
+                              <ItemIcon />
+                              <span className="truncate">{text}</span>
+                            </button>
+                          ) : (
+                            <Link
+                              to={destination}
+                              onClick={(event) => handleLeafClick(event, onClick)}
+                              className={`flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-gray-700 ${
+                                isActive ? "bg-gray-700 font-semibold" : ""
+                              }`}
+                            >
+                              <ItemIcon />
+                              <span className="truncate">{text}</span>
+                            </Link>
+                          )}
+
+                          {subMenu && permissionsOpen && (
+                            <div className="ml-5 flex flex-col gap-1">
+                              {subMenu.map(({ icon: SubIcon, text: subText, path: subPath }, subIdx) => (
+                                <Link
+                                  key={`${subPath}-${subIdx}`}
+                                  to={subPath}
+                                  onClick={(event) => handleLeafClick(event)}
+                                  className={`flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-gray-700 ${
+                                    currentPath === subPath ? "bg-gray-700 font-semibold" : ""
+                                  }`}
+                                >
+                                  <SubIcon />
+                                  <span>{subText}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
        

@@ -1,12 +1,13 @@
 
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import BASE_URL from "./config";
 import { useOutletContext } from "react-router-dom";
+import { productNameMatchesSearch } from "../utils/productSearch";
 
 export default function StockCount({
     user,
@@ -18,10 +19,13 @@ export default function StockCount({
     const [stockData, setStockData] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState("");
-    const [editingIndex, setEditingIndex] = useState(null);
+    const [editingProductId, setEditingProductId] = useState(null);
     const [editedValue, setEditedValue] = useState("");
     const inputRef = useRef(null);
     const [today, setToday] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(50);
     const { selectedCompany } = useOutletContext();
     // const [showPrevDate, setShowPrevDate] = useState(false);
     // const [showPrevDateUser, setShowPrevDateUser] = useState(false);// Ensure this is passed as a prop or managed via context
@@ -30,6 +34,46 @@ export default function StockCount({
     const shouldShowPrevStock =
         (normalizedRole === "superadmin" && showPrevDate) ||
         (normalizedRole === "user" && showPrevDateUser) || (normalizedRole === "admin" && showPrevDate) ;
+
+    const filteredStockData = useMemo(() => {
+        if (!searchTerm.trim()) return stockData;
+        return stockData.filter((item) =>
+            productNameMatchesSearch(item.product_name, searchTerm)
+        );
+    }, [stockData, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredStockData.length / rowsPerPage) || 1);
+
+    const paginatedStockData = useMemo(() => {
+        const start = (currentPage - 1) * rowsPerPage;
+        return filteredStockData.slice(start, start + rowsPerPage);
+    }, [filteredStockData, currentPage, rowsPerPage]);
+
+    const startIndex =
+        filteredStockData.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+    const endIndex = Math.min(currentPage * rowsPerPage, filteredStockData.length);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, rowsPerPage]);
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
+
+    const getExportRows = (rows) =>
+        rows.map((item) => {
+            const row = [item.product_name];
+            if (showPrevDate) {
+                row.push(item.prev ?? "");
+            }
+            row.push(
+                item.current === "" || item.current === null ? "0" : item.current
+            );
+            return row;
+        });
 
     const updateSetting = async (name, value) => {
         const token = localStorage.getItem("authToken");
@@ -82,18 +126,11 @@ export default function StockCount({
         const headers = ["Product Name"];
         if (showPrevDate) headers.push("Previous Stock");
         headers.push("Current Stock");
-    
-        const data = stockData.map(item => {
-            const row = [item.product_name];
-    
-            if (showPrevDate) {
-                row.push(includeData ? (item.prev ?? "") : "");
-            }
-    
-            row.push(includeData ? (item.current === "" || item.current === null ? "0" : item.current) : "");
-    
-            return row;
-        });
+
+        const rowsToExport = searchTerm.trim() ? filteredStockData : stockData;
+        const data = includeData
+            ? getExportRows(rowsToExport)
+            : rowsToExport.map((item) => [item.product_name]);
     
         const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
         const workbook = XLSX.utils.book_new();
@@ -124,20 +161,15 @@ doc.text(`Stock Count on ${today}`, doc.internal.pageSize.getWidth() / 2, 13, { 
         if (includeData && showPrevDate) headers.push("Previous Stock");
         headers.push("Current Stock"); // Always add Current Stock, even if includeData is false
     
-        const data = stockData.map(item => {
-            const row = [item.product_name];
-            if (includeData && showPrevDate) {
-                row.push(item.prev ?? "-");
-            } else if (showPrevDate) {
-                row.push("-");
-            }
-            if (includeData) {
-                row.push(item.current === "" || item.current === null ? "-" : item.current);
-            } else {
-                row.push(""); // Current stock empty if no data
-            }
-            return row;
-        });
+        const rowsToExport = searchTerm.trim() ? filteredStockData : stockData;
+        const data = includeData
+            ? getExportRows(rowsToExport)
+            : rowsToExport.map((item) => {
+                const row = [item.product_name];
+                if (showPrevDate) row.push("-");
+                row.push("");
+                return row;
+            });
     
         autoTable(doc, {
             startY: 25, // Start after the header
@@ -222,6 +254,7 @@ useEffect(() => {
 
       setWarehouses(data);
       if (data.length > 0) setSelectedWarehouse(data[0].id);
+      setSearchTerm("");
     } catch (err) {
       console.error(err);
     }
@@ -252,7 +285,9 @@ useEffect(() => {
 
       const data = await res.json();
 
-      const merged = data.map((item) => ({
+      const merged = data
+        .filter((item) => item.is_active !== false)
+        .map((item) => ({
         ...item,
         current: item.current_quantity ?? "",
         prev: item.previous_quantity ?? 0,
@@ -260,6 +295,8 @@ useEffect(() => {
       }));
 
       setStockData(merged);
+      setSearchTerm("");
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
     }
@@ -273,36 +310,44 @@ useEffect(() => {
     
     const handleWarehouseChange = (e) => {
         setSelectedWarehouse(e.target.value);
+        setSearchTerm("");
+        setEditingProductId(null);
+        setCurrentPage(1);
     };
 
-    const handleCellClick = (index) => {
-        setEditingIndex(index);
-        setEditedValue(stockData[index].current?.toString() ?? "");
+    const handleCellClick = (productId) => {
+        setEditingProductId(productId);
+        const item = stockData.find((row) => row.product_id === productId);
+        setEditedValue(item?.current?.toString() ?? "");
         setTimeout(() => inputRef.current?.focus(), 0);
     };
 
     const handleBlur = () => {
-        if (editingIndex === null) return;
+        if (editingProductId === null) return;
+
+        const index = stockData.findIndex((row) => row.product_id === editingProductId);
+        if (index === -1) {
+            setEditingProductId(null);
+            setEditedValue("");
+            return;
+        }
 
         const updated = [...stockData];
-        const currentItem = updated[editingIndex];
+        const currentItem = updated[index];
         const newValue = editedValue === "" || isNaN(editedValue) ? null : parseFloat(editedValue);
         currentItem.current = newValue !== null ? newValue : "";
 
         setStockData(updated);
-        setEditingIndex(null);
+        setEditingProductId(null);
         setEditedValue("");
 
         if (newValue !== null) {
             const payload = {
                 product_id: currentItem.product_id,
                 warehouse_id: selectedWarehouse,
-                date: today, // use server-side date
+                date: today,
                 quantity: newValue,
             };
-
-            // console.log("Payload being sent:", payload);
-            // console.log("Date used in payload:", payload.date);
 
             fetch(`${BASE_URL}/api/update_stock/`, {
                 method: "POST",
@@ -316,22 +361,22 @@ useEffect(() => {
                     if (!res.ok) {
                         throw new Error(data.detail || "Failed to update stock");
                     }
-                    // console.log("Stock updated:", data);
                 })
-                .catch(err => {
-                    // console.error("Failed to update stock:", err);
-                });
+                .catch(() => {});
         }
     };
 
 
     const handleKeyDown = (e) => {
-        if (editingIndex === null) return;
+        if (editingProductId === null) return;
         if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             handleBlur();
-            const newIndex = e.key === "ArrowDown" ? editingIndex + 1 : editingIndex - 1;
-            if (newIndex >= 0 && newIndex < stockData.length) {
-                handleCellClick(newIndex);
+            const currentIndex = paginatedStockData.findIndex(
+                (row) => row.product_id === editingProductId
+            );
+            const newIndex = e.key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1;
+            if (newIndex >= 0 && newIndex < paginatedStockData.length) {
+                handleCellClick(paginatedStockData[newIndex].product_id);
             }
         }
     };
@@ -454,7 +499,8 @@ useEffect(() => {
                     </div>
                 )}
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
                     <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm"
                         onClick={() => exportToExcel(true)}
                     >
@@ -475,6 +521,36 @@ useEffect(() => {
                     >
                         Export to PDF
                     </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-auto flex-wrap justify-end">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setEditingProductId(null);
+                            }}
+                            placeholder="Search products..."
+                            className="w-full sm:w-64 px-3 py-2 rounded border border-gray-300 dark:bg-gray-800 dark:border-gray-700 text-sm"
+                        />
+                        <select
+                            value={rowsPerPage}
+                            onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                            className="px-3 py-2 rounded border border-gray-300 dark:bg-gray-800 dark:border-gray-700 text-sm"
+                        >
+                            {[10, 20, 30, 50, 100].map((num) => (
+                                <option key={num} value={num}>
+                                    {num} rows
+                                </option>
+                            ))}
+                        </select>
+                        {searchTerm.trim() && (
+                            <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                {filteredStockData.length} of {stockData.length}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto border rounded-lg shadow dark:border-gray-700">
@@ -510,9 +586,10 @@ useEffect(() => {
                             </tr>
                         </thead>
                         <tbody>
-                            {stockData.map((item, index) => (
+                            {paginatedStockData.length > 0 ? (
+                            paginatedStockData.map((item, index) => (
                                 <tr
-                                    key={item.id}
+                                    key={item.product_id}
                                     className={
                                         index % 2 === 0
                                             ? "bg-white dark:bg-gray-900"
@@ -532,9 +609,9 @@ useEffect(() => {
 
                                     <td
                                         className="p-3 border-b dark:border-gray-700 cursor-pointer"
-                                        onClick={() => handleCellClick(index)}
+                                        onClick={() => handleCellClick(item.product_id)}
                                     >
-                                        {editingIndex === index ? (
+                                        {editingProductId === item.product_id ? (
                                             <input
                                                 ref={inputRef}
                                                 type="text"
@@ -551,9 +628,50 @@ useEffect(() => {
                                         )}
                                     </td>
                                 </tr>
-                            ))}
+                            ))
+                            ) : (
+                                <tr>
+                                    <td
+                                        colSpan={shouldShowPrevStock ? 3 : 2}
+                                        className="p-4 text-center text-gray-500 dark:text-gray-400"
+                                    >
+                                        {stockData.length === 0
+                                            ? "No products found."
+                                            : "No products match your search."}
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {filteredStockData.length === 0
+                            ? "Showing 0 entries"
+                            : `Showing ${startIndex} to ${endIndex} of ${filteredStockData.length} entries`}
+                    </span>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                            Prev
+                        </button>
+                        <span className="text-sm">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages || filteredStockData.length === 0}
+                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
 
             </div>

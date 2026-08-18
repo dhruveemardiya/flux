@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Role, User,Warehouse, Product,ProductWarehouse, UserWarehouse
+from .models import Role, User,Warehouse, Product,ProductWarehouse, UserWarehouse, Customer, Campaign, CampaignLead, CampaignLeadAttempt
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -148,7 +148,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'product_name', 'warehouses', 'company_id']
+        fields = ['id', 'product_name', 'is_active', 'warehouses', 'company_id']
 
     def create(self, validated_data):
         warehouses = validated_data.pop('warehouses', [])
@@ -204,6 +204,15 @@ class CompanySerializer(serializers.ModelSerializer):
         model = Company
         fields = '__all__'
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        logo = representation.get('logo')
+        if logo:
+            request = self.context.get('request')
+            if request is not None:
+                representation['logo'] = request.build_absolute_uri(logo)
+        return representation
+
     def create(self, validated_data):
         validated_data.pop('remove_logo', None)  # Remove if present
         return super().create(validated_data)
@@ -223,3 +232,85 @@ class SavedReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedReport
         fields = '__all__'
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+
+class CampaignSerializer(serializers.ModelSerializer):
+    company_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = Campaign
+        fields = ['id', 'name', 'description', 'start_date', 'status', 'company_id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'status', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        company_id = validated_data.pop('company_id')
+        request = self.context.get('request')
+
+        campaign = Campaign.objects.create(
+            company_id=company_id,
+            created_by=request.user if request else None,
+            **validated_data,
+        )
+        return campaign
+
+
+class CampaignLeadSerializer(serializers.ModelSerializer):
+    customer_id = serializers.IntegerField(read_only=True)
+    customer_excel_name = serializers.SerializerMethodField()
+    customer_company_name = serializers.SerializerMethodField()
+    customer_docat = serializers.SerializerMethodField()
+    customer_reviews = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CampaignLead
+        fields = [
+            'id', 'customer_id', 'first_name', 'last_name', 'phone', 'address_line1', 'city', 'state',
+            'dispatch_date', 'expected_delivery_date', 'actual_delivery_date', 'courier_name',
+            'products', 'client_status', 'courier_status', 'status', 'notes', 'client_review',
+            'customer_excel_name',
+            'customer_company_name',
+            'customer_docat', 'customer_reviews',
+            'courier_description',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'customer_id', 'created_at', 'updated_at']
+
+    def get_customer_excel_name(self, obj):
+        try:
+            return getattr(obj.customer, 'excel_name', '') or ''
+        except Exception:
+            return ''
+
+    def get_customer_company_name(self, obj):
+        try:
+            return getattr(obj.customer, 'company_upload_name', '') or getattr(obj.customer, 'company_name', '') or ''
+        except Exception:
+            return ''
+
+    def get_customer_docat(self, obj):
+        try:
+            return getattr(obj.customer, 'docat', '') or ''
+        except Exception:
+            return ''
+
+    def get_customer_reviews(self, obj):
+        try:
+            return getattr(obj.customer, 'reviews', '') or ''
+        except Exception:
+            return ''
+
+
+
+
+class CampaignLeadAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CampaignLeadAttempt
+        fields = ['id', 'lead', 'attempt_number', 'dispatch_date', 'expected_delivery_date', 'actual_delivery_date', 'courier_name', 'courier_status', 'courier_description', 'notes', 'created_at']
+        read_only_fields = ['id', 'lead', 'attempt_number', 'created_at']
+    

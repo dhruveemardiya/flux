@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4d%ap26=-ef_beba7ol-ghf$1!teipo=xn&2ircvtft5it9n0n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 
@@ -91,6 +91,9 @@ DATABASES = {
         'PASSWORD': 'evM1jU0o6XkZVLgHNSsuc287QBfyKOIr',
         'HOST': 'db.sky9.ai',
         'PORT': '3306',
+        'OPTIONS': {
+            'connect_timeout': 10,
+        },
     }
 }
 
@@ -176,6 +179,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True  
+
+
 # from pathlib import Path
 # # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -257,6 +262,14 @@ CORS_ALLOW_ALL_ORIGINS = True
 #         'USER': 'flux_database',
 #         'PASSWORD': 'Flux@2025',
 #         'HOST': 'localhost',
+#         'PORT': '3306',
+#     },
+#     'tally': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'tally_sync_atpl_xihth',
+#         'USER': 'tally_sync_atpl_xihth',
+#         'PASSWORD': 'evM1jU0o6XkZVLgHNSsuc287QBfyKOIr',
+#         'HOST': 'db.sky9.ai',
 #         'PORT': '3306',
 #     }
 # }

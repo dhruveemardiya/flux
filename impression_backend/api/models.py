@@ -98,6 +98,7 @@ from django.utils import timezone
 
 class Product(models.Model):
     product_name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -226,7 +227,146 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Customer(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=50, null=True, blank=True)
+    company_name = models.CharField(max_length=255, blank=True, default='')
+    company_upload_name = models.TextField(blank=True, default='')
+    docat = models.TextField(blank=True, default='')
+    reviews = models.TextField(blank=True, default='')
+    excel_name = models.CharField(max_length=255, blank=True, default='')
+    file_uploaded_at = models.DateTimeField(null=True, blank=True)
+    address_line1 = models.TextField(blank=True)
+    address_line2 = models.TextField(blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    pincode = models.CharField(max_length=20, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, related_name='customers')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_customers')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'api_customer'
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
+
+class Campaign(models.Model):
+    STATUS_DRAFT = 'Draft'
+    STATUS_ACTIVE = 'Active'
+    STATUS_CLOSED = 'Closed'
+
+    STATUS_CHOICES = (
+        (STATUS_DRAFT, 'Draft'),
+        (STATUS_ACTIVE, 'Active'),
+        (STATUS_CLOSED, 'Closed'),
+    )
+
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    start_date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='campaigns')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_campaigns'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'campaigns'
+        ordering = ['-id']
+        unique_together = ('name', 'company')
+
+    def __str__(self):
+        return f"{self.name} ({self.company.name})"
+
+
+class CampaignLead(models.Model):
+    STATUS_PENDING = 'Pending'
+    STATUS_DISPATCHED = 'Dispatched'
+    STATUS_DELIVERED = 'Delivered'
+    STATUS_FAILED = 'Failed'
+    STATUS_RETURNED = 'Returned'
+
+    STATUS_CHOICES = (
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_DISPATCHED, 'Dispatched'),
+        (STATUS_DELIVERED, 'Delivered'),
+        (STATUS_FAILED, 'Failed'),
+        (STATUS_RETURNED, 'Returned'),
+    )
+
+    CLIENT_STATUS_PENDING = 'Pending'
+    CLIENT_STATUS_APPROVED = 'Approved'
+    CLIENT_STATUS_REJECTED = 'Rejected'
+
+    CLIENT_STATUS_CHOICES = (
+        (CLIENT_STATUS_PENDING, 'Pending'),
+        (CLIENT_STATUS_APPROVED, 'Approved'),
+        (CLIENT_STATUS_REJECTED, 'Rejected'),
+    )
+
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='leads')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='campaign_leads')
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=50, null=True, blank=True)
+    address_line1 = models.TextField(blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    dispatch_date = models.DateField(null=True, blank=True)
+    expected_delivery_date = models.DateField(null=True, blank=True)
+    actual_delivery_date = models.DateField(null=True, blank=True)
+    courier_name = models.CharField(max_length=255, blank=True)
+    client_status = models.CharField(max_length=20, choices=CLIENT_STATUS_CHOICES, blank=True, default='')
+    courier_status = models.CharField(max_length=20, choices=STATUS_CHOICES, blank=True, default='')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    notes = models.TextField(blank=True)
+    client_review = models.TextField(blank=True, default='')
+    courier_description = models.TextField(blank=True, default='')
+    products = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'campaign_leads'
+        ordering = ['-id']
+        unique_together = ('campaign', 'customer')
+
+    def __str__(self):
+        return f"{self.campaign.name} - {self.first_name} {self.last_name}".strip()
     
+
+class CampaignLeadAttempt(models.Model):
+    lead = models.ForeignKey(CampaignLead, on_delete=models.CASCADE, related_name='attempts')
+    attempt_number = models.IntegerField(default=1)
+    dispatch_date = models.DateField(null=True, blank=True)
+    expected_delivery_date = models.DateField(null=True, blank=True)
+    actual_delivery_date = models.DateField(null=True, blank=True)
+    courier_name = models.CharField(max_length=255, blank=True)
+    courier_status = models.CharField(max_length=50, blank=True)
+    courier_description = models.TextField(blank=True, default='')
+    notes = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'campaign_lead_attempts'
+        ordering = ['attempt_number']
+        unique_together = ('lead', 'attempt_number')
+
+    def __str__(self):
+        return f"Lead {self.lead_id} Attempt {self.attempt_number}"
 
 
 from django.db import models

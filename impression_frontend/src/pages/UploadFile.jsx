@@ -323,12 +323,12 @@ useEffect(() => {
       >
         Upload
       </button>
-      <button
+      {/* <button
         onClick={handleSyncData}
         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
       >
         Sync Data
-      </button>
+      </button> */}
     </div>
   </div>
   <p className="text-xs text-gray-500 mt-1">Only .csv files allowed</p>

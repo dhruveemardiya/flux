@@ -779,6 +779,7 @@ setLoadingFilters(false);
               )}
 
               <AgGridReact
+                theme="legacy"
                 rowData={rowData}
                 columnDefs={columnDefs}
                 pagination={true}

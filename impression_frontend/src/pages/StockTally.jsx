@@ -11,6 +11,7 @@ import { Menu } from "lucide-react"; // optional: use any hamburger icon
 
 import { useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
+import { productNameMatchesSearch } from "../utils/productSearch";
 const formatDate = (dateStr) => {
   const d = new Date(dateStr);
   return d.toLocaleDateString();
@@ -162,8 +163,8 @@ const fetchProducts = async () => {
       return;
     }
 
-    // Fetch products for the company
-    const res = await fetch(`${BASE_URL}/api/get_products/?company_id=${companyId}`, {
+    // Fetch products for the company (active only)
+    const res = await fetch(`${BASE_URL}/api/get_products/?company_id=${companyId}&status=active`, {
       headers: {
         Authorization: `Token ${token}`,
         "Content-Type": "application/json",
@@ -172,7 +173,9 @@ const fetchProducts = async () => {
 
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
-    const productData = Array.isArray(data) ? data : [];
+    const productData = (Array.isArray(data) ? data : []).filter(
+      (p) => p.is_active !== false
+    );
     setProducts(productData);
     setProductsLoaded(true);
   } catch (err) {
@@ -253,7 +256,9 @@ useEffect(() => {
       setPrevDate(data.product_table_prev_date);
       setCurrentDate(data.current_date);
 
-      const mergedProducts = products.map((prod) => {
+      const mergedProducts = products
+        .filter((prod) => prod.is_active !== false)
+        .map((prod) => {
         const stockData = data.products.find((p) => p.product_id === prod.id);
         return {
           ...prod,
@@ -312,7 +317,9 @@ useEffect(() => {
       setPrevDate(selectedDate);
       setCurrentDate(data.current_date);
 
-      const mergedProducts = products.map((prod) => {
+      const mergedProducts = products
+        .filter((prod) => prod.is_active !== false)
+        .map((prod) => {
         const stockData = data.products.find((p) => p.product_id === prod.id);
         return {
           ...prod,
@@ -334,12 +341,11 @@ useEffect(() => {
   };
 
   const filteredProducts = products.filter((p) =>
-    p.product_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    productNameMatchesSearch(p.product_name, searchTerm)
   );
 
   const filteredStockProducts = useMemo(() => {
     if (filterType === "") {
-      console.log("Filter: (none) - returning all filtered products");
       return filteredProducts;
     }
 
@@ -380,6 +386,10 @@ useEffect(() => {
 
   const totalPages = Math.ceil(filteredStockProducts.length / rowsPerPage);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   // Keep currentPage within valid bounds whenever filteredProducts or rowsPerPage changes
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
@@ -415,7 +425,7 @@ useEffect(() => {
   };
 
   const getExportRows = () => {
-    return products.map((prod) => {
+    return filteredStockProducts.map((prod) => {
       const row = [prod.product_name];
 
       selectedWarehouses.forEach((wh) => {
@@ -699,7 +709,7 @@ useEffect(() => {
           </div>
 
           {/* Search Input */}
-        <div className="w-full sm:w-auto flex-1 min-w-[100px] max-w-sm mt-2 sm:mt-0">
+        <div className="w-full sm:w-auto flex-1 min-w-[100px] max-w-sm mt-2 sm:mt-0 flex items-center gap-2">
   <input
     type="text"
     value={searchTerm}
@@ -707,6 +717,11 @@ useEffect(() => {
     placeholder="Search products..."
     className="w-full px-3 py-1.5 rounded border dark:bg-gray-800 text-sm"
   />
+  {searchTerm.trim() && (
+    <span className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+      {filteredStockProducts.length} of {products.length}
+    </span>
+  )}
 </div>
 
         </div>
@@ -776,8 +791,9 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-            {paginatedProducts.map((prod, idx) => (
-              <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+            {paginatedProducts.length > 0 ? (
+            paginatedProducts.map((prod, idx) => (
+              <tr key={prod.id ?? prod.product_id ?? idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="p-2 border dark:border-gray-700">
                   {prod.product_name}
                 </td>
@@ -847,7 +863,19 @@ useEffect(() => {
                   </td>
                 )}
               </tr>
-            ))}
+            ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={20}
+                  className="p-4 text-center text-gray-500 dark:text-gray-400"
+                >
+                  {products.length === 0
+                    ? "No products found."
+                    : "No products match your search."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

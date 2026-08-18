@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
@@ -36,7 +36,11 @@ const { id: reportIdFromURL } = useParams();
 
 
   const [showFilters, setShowFilters] = useState(false);
-  const visibleReports = reports.filter((r) => !r.hidden);
+  const visibleReports = useMemo(
+    () => reports.filter((r) => !r.hidden),
+    [reports]
+  );
+  const urlReportInitializedRef = useRef(false);
 
   const [filters, setFilters] = useState({
     duration: false,
@@ -84,19 +88,34 @@ const [useSavedFilterOptionsOnly, setUseSavedFilterOptionsOnly] = useState(false
     if (selectedReportIndex !== null && rowHeader && columnHeader) {
       handleSearch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedReportIndex, rowHeader, columnHeader]);
 
 
 useEffect(() => {
-  if (visibleReports.length > 0 && reportIdFromURL) {
-    const foundIndex = visibleReports.findIndex(
-      report => String(report.id) === reportIdFromURL
-    );
-    if (foundIndex !== -1) {
-      setSelectedReportIndex(foundIndex);
-      handleSelectReport(foundIndex);
-    }
+  urlReportInitializedRef.current = false;
+}, [reportIdFromURL]);
+
+useEffect(() => {
+  if (
+    !reportIdFromURL ||
+    visibleReports.length === 0 ||
+    urlReportInitializedRef.current
+  ) {
+    return;
   }
+
+  const foundIndex = visibleReports.findIndex(
+    (report) => String(report.id) === reportIdFromURL
+  );
+
+  if (foundIndex === -1) {
+    return;
+  }
+
+  urlReportInitializedRef.current = true;
+  handleSelectReport(foundIndex);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [visibleReports, reportIdFromURL]);
 
   useEffect(() => {
@@ -794,6 +813,7 @@ setLoadingFilters(false);
               )}
 
               <AgGridReact
+                theme="legacy"
                 rowData={rowData}
                 columnDefs={columnDefs}
                 pagination={true}

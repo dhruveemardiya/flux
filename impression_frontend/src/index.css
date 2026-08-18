@@ -123,3 +123,30 @@ code {
   z-index: 10;
   background-color: white;
 }
+
+/* Make scrollbars invisible globally but preserve scrolling
+   - Firefox: `scrollbar-width: none`
+   - IE / Edge legacy: `-ms-overflow-style: none`
+   - Webkit browsers: hide via ::-webkit-scrollbar
+   Note: keeps native scrolling functionality intact. */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Provide an opt-out utility if any component needs visible scrollbars */
+.show-scrollbar {
+  scrollbar-width: auto !important;
+  -ms-overflow-style: auto !important;
+}
+.show-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+  display: block !important;
+}

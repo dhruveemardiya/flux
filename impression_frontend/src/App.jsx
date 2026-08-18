@@ -13,6 +13,10 @@ import AddWarehouse from "./pages/AddWarehouse";
 import UserWarehouse from "./pages/UserWarehouse";
 import ProductWarehouse from "./pages/ProductWarehouse";
 import UploadFile from "./pages/UploadFile";
+import DataMapping from "./pages/DataMapping";
+import CourierTracking from "./pages/CourierTracking";
+import CampaignView from "./pages/CampaignView";
+import TrackMap from "./pages/TrackMap";
 import RemoveData from "./pages/RemoveData";
 import AddRole from "./pages/AddRole";
 import Permissions from "./pages/Permissions";
@@ -112,8 +116,7 @@ export default function App() {
 
     fetchInitialData();
   }, []);
-
-  const allowedUserPaths = ["/stock-count", "/upload-excel", "/change-password",'/dashboard'];
+const allowedUserPaths = ["/stock-count", "/upload-excel", "/data-mapping", "/change-password", '/dashboard', '/campaigns/:id', '/campaign', '/courier-tracking', '/track-map', '/report-dashboard', '/reports/:id', '/static-report'];
   const allowedtechadminPaths = ["/users","/create-report","/reports/:id","/edit-report/:id", "/create-permission", "/add-permission",'/dashboard','/add-role','/edit-user/:id','/add-user','/company','/add-company','/companies/edit/:id','/report-dashboard','/report-settings',"static-report"];
 const adminAllowedPaths = [
   "/dashboard",
@@ -130,7 +133,16 @@ const adminAllowedPaths = [
   "/stock-count",
   "/stock-tally",
   "/change-password",
+  "/data-mapping",
+  "/campaign",
+  "/courier-tracking",
+  "/campaigns/:id",
+  "/track-map",
 ];
+
+// Ensure techadmin and user lists contain campaign where appropriate
+allowedtechadminPaths.push('/data-mapping','/campaign','/courier-tracking');
+allowedUserPaths && allowedUserPaths.push && allowedUserPaths.push('/campaign','/courier-tracking');
 
 
 const RestrictedRoute = ({ children, path }) => {
@@ -204,6 +216,19 @@ const RestrictedRoute = ({ children, path }) => {
             <Route path="user-warehouse" element={<RestrictedRoute path="/user-warehouse"><UserWarehouse /></RestrictedRoute>} />
             <Route path="product-warehouse" element={<RestrictedRoute path="/product-warehouse"><ProductWarehouse /></RestrictedRoute>} />
             <Route path="upload-excel" element={<UploadFile user={user} />} />
+            <Route path="data-mapping" element={<RestrictedRoute path="/data-mapping"><DataMapping /></RestrictedRoute>} />
+            <Route path="campaign" element={<RestrictedRoute path="/campaign"><CampaignView /></RestrictedRoute>} />
+            <Route
+              path="courier-tracking"
+              element={
+                <RestrictedRoute path="/courier-tracking">
+                  <CourierTracking showOnlyActive={true} />
+                </RestrictedRoute>
+              }
+            />
+           
+           <Route path="campaigns/:id" element={<RestrictedRoute path="/campaigns/:id"><CampaignView/></RestrictedRoute>} />
+            <Route path="track-map" element={<RestrictedRoute path="/track-map"><TrackMap/></RestrictedRoute>} />
             <Route path="remove-data" element={<RestrictedRoute path="/remove-data"><RemoveData /></RestrictedRoute>} />
             <Route path="add-role" element={<RestrictedRoute path="/add-role"><AddRole /></RestrictedRoute>} />
             <Route path="report-dashboard" element={<RestrictedRoute path="/report-dashboard"><ReportDashboard /></RestrictedRoute>} />
@@ -245,9 +270,6 @@ const RestrictedRoute = ({ children, path }) => {
   }
 />
 
-
-
-           
             <Route path="edit-user/:id" element={<RestrictedRoute path="/edit-user/:id"><EditUser /></RestrictedRoute>} />
             <Route path="change-password" element={<RestrictedRoute path="/change-password"><ChangePassword/></RestrictedRoute>} />
             <Route path="*" element={<div className="p-8 text-center">Page Not Found</div>} />

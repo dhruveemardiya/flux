@@ -19,14 +19,1301 @@ from .serializers import WarehouseSerializer,ProductSerializer
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
+import re
+from collections import defaultdict
 from django.db import IntegrityError
 from django.contrib.auth import get_user_model
 from datetime import datetime
 from django.db import connection
 from rest_framework import serializers
-from .models import Role,Product
+from .product_utils import (
+    normalize_product_name,
+    find_product_by_normalized_name,
+    get_or_create_normalized_product,
+)
+import requests
+import unicodedata
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from rest_framework.permissions import BasePermission
+from django.db.models import Count, Q
+from .models import Company, Customer, Campaign, CampaignLead
+from .serializers import CampaignSerializer, CampaignLeadSerializer
+from .models import CampaignLeadAttempt
+from .serializers import CampaignLeadAttemptSerializer
+
+CUSTOMER_TABLE_NAME = 'api_customer'
+CUSTOMER_FIELD_ALIASES = {
+    'phone_number': 'phone',
+    'address_line_1': 'address_line1',
+    'address_line_2': 'address_line1',
+    'party_name': 'company_upload_name',
+    'company_name': 'company_upload_name',
+}
+
+
+def _normalize_text(value):
+    return '' if value is None else str(value).strip()
+
+
+def _normalize_for_comparison(value):
+    """Lowercase, strip, remove extra spaces, normalize unicode."""
+    if value is None:
+        return ''
+    value = str(value).strip().lower()
+    value = unicodedata.normalize('NFKD', value)
+    value = ' '.join(value.split())
+    return value
+
+
+def _normalize_name(value):
+    """Sort name tokens so 'Priya Sharma' == 'Sharma Priya'."""
+    normalized = _normalize_for_comparison(value)
+    tokens = sorted(normalized.split())
+    return ' '.join(tokens)
+
+
+def _extract_phones(raw_phone):
+    if not raw_phone:
+        return set()
+
+    result = set()
+    parts = re.split(r'[,;/]+', str(raw_phone))
+    for part in parts:
+        part = part.strip()
+        if not part or re.search(r'[a-zA-Z]', part):
+            continue
+
+        digits = re.sub(r'\D', '', part)
+        if len(digits) == 12 and digits.startswith('91'):
+            digits = digits[2:]
+        elif len(digits) == 11 and digits.startswith('1'):
+            digits = digits[1:]
+
+        if len(digits) == 10:
+            result.add(digits)
+
+    return result
+
+
+def _normalize_phone_field(raw_phone):
+    phones = _extract_phones(raw_phone)
+    return ', '.join(sorted(phones)) if phones else ''
+
+
+def _extract_name_group(row):
+    names = set()
+    for field in ('company_upload_name', 'first_name', 'last_name'):
+        value = _normalize_for_comparison(row.get(field, ''))
+        if value:
+            names.add(value)
+    return names
+
+
+def _extract_address_group(row):
+    address_line1 = _normalize_text(row.get('address_line1') or '').strip().lower()
+    return address_line1
+
+
+def _rows_are_duplicates(a, b):
+    """
+    Flexible duplicate detection — works even when fields are missing.
+
+    Scoring system:
+      Each signal that is present AND matches scores 1 point.
+      Each signal that is present but does NOT match scores -1 (conflict).
+      Missing signals score 0 (no evidence either way).
+
+    Decision:
+      - 2+ matching signals                          → duplicate
+      - 1 matching signal + 0 conflicts              → duplicate (only signal available)
+      - 1 matching signal + 1 conflict               → NOT duplicate (contradiction)
+      - 0 matching signals                           → NOT duplicate
+      - Any signal actively conflicts (mismatch)
+        while another matches → NOT duplicate
+    """
+    a_names = _extract_name_group(a)
+    b_names = _extract_name_group(b)
+    a_address = _extract_address_group(a)
+    b_address = _extract_address_group(b)
+    a_phones = _extract_phones(a.get('phone') or a.get('phone_number', ''))
+    b_phones = _extract_phones(b.get('phone') or b.get('phone_number', ''))
+
+    has_name = bool(a_names and b_names)
+    has_address = bool(a_address and b_address)
+    has_phone = bool(a_phones and b_phones)
+
+    # No signals at all — cannot determine
+    if not has_name and not has_address and not has_phone:
+        return False
+
+    name_match = has_name and bool(a_names.intersection(b_names))
+    address_match = has_address and (a_address == b_address)
+    phone_match = has_phone and bool(a_phones.intersection(b_phones))
+
+    # Count matches and conflicts among available signals only
+    matches = sum([name_match, address_match, phone_match])
+    conflicts = sum([
+        has_name and not name_match,
+        has_address and not address_match,
+        has_phone and not phone_match,
+    ])
+
+    # Any active conflict cancels the match — e.g. same name but different phone
+    # means they are likely different people, not duplicates
+    if conflicts > 0 and matches <= 1:
+        return False
+
+    # Strong conflict: 2+ signals present and majority conflict
+    if conflicts >= matches:
+        return False
+
+    # 2 or more signals match → definitely duplicate
+    if matches >= 2:
+        return True
+
+    # Only 1 signal available and it matches → duplicate
+    checkable = sum([has_name, has_address, has_phone])
+    if checkable == 1 and matches == 1:
+        return True
+
+    return False
+
+
+def _is_duplicate_customer(company_id, customer_data):
+    """
+    Check if a customer is duplicate by comparing party name, phone, and address.
+    Case-insensitive, order-insensitive for names.
+    Returns the matching customer or None.
+    """
+    candidates = Customer.objects.filter(company_id=company_id)
+
+    incoming_phone = _extract_phones(customer_data.get('phone', ''))
+    incoming_names = _extract_name_group(customer_data)
+    incoming_address = _extract_address_group(customer_data)
+
+    for c in candidates:
+        db_phone = _extract_phones(c.phone)
+        db_names = _extract_name_group({
+            'company_upload_name': getattr(c, 'company_upload_name', '') or '',
+            'first_name': c.first_name or '',
+            'last_name': c.last_name or '',
+        })
+        db_address = _extract_address_group({
+            'address_line1': c.address_line1 or '',
+        })
+
+        if _rows_are_duplicates({
+            'company_upload_name': customer_data.get('company_upload_name', ''),
+            'first_name': customer_data.get('first_name', ''),
+            'last_name': customer_data.get('last_name', ''),
+            'phone': _normalize_phone_field(customer_data.get('phone', '')),
+            'address_line1': customer_data.get('address_line1', ''),
+            'address_line2': customer_data.get('address_line2', ''),
+        }, {
+            'company_upload_name': getattr(c, 'company_upload_name', '') or '',
+            'first_name': c.first_name or '',
+            'last_name': c.last_name or '',
+            'phone': _normalize_phone_field(c.phone),
+            'address_line1': c.address_line1 or '',
+        }):
+            return c
+
+    return None
+
+
+def _normalize_customer_payload(data):
+    return {
+        'first_name': _normalize_text(data.get('first_name')),
+        'last_name': _normalize_text(data.get('last_name')),
+        'phone': _normalize_text(data.get('phone') or data.get('phone_number')),
+        'company_upload_name': _normalize_text(data.get('company_upload_name') or data.get('party_name') or data.get('company_name')),
+        'address_line1': _normalize_text(data.get('address_line1') or data.get('address_line_1')),
+        'country': _normalize_text(data.get('country')),
+        'city': _normalize_text(data.get('city')),
+        'state': _normalize_text(data.get('state')),
+        'pincode': _normalize_text(data.get('pincode')),
+    }
+
+
+def _find_existing_customer(customer_data):
+    """
+    Find an existing customer using whatever signals are available.
+    No single field is required — works with any combination of phone/name/address.
+    """
+    phone = _normalize_phone_field(
+        customer_data.get('phone', '') or customer_data.get('phone_number', '')
+    )
+    lookup_row = {
+        'company_upload_name': customer_data.get('company_upload_name', ''),
+        'first_name': customer_data.get('first_name', ''),
+        'last_name': customer_data.get('last_name', ''),
+        'phone': phone,
+        'address_line1': customer_data.get('address_line1', '') or customer_data.get('address_line_1', ''),
+    }
+
+    candidates = []
+    seen_ids = set()
+
+    # Strategy 1: match candidates by phone
+    if phone:
+        phone_query = Q()
+        for extracted_phone in _extract_phones(phone):
+            phone_query |= Q(phone__icontains=extracted_phone)
+        for candidate in Customer.objects.filter(phone_query):
+            if candidate.id not in seen_ids:
+                seen_ids.add(candidate.id)
+                candidates.append(candidate)
+
+    # Strategy 2: match candidates by name
+    name_group = _extract_name_group(lookup_row)
+    if name_group:
+        name_query = Q()
+        for name in name_group:
+            name_query |= (
+                Q(company_upload_name__iexact=name) |
+                Q(first_name__iexact=name) |
+                Q(last_name__iexact=name)
+            )
+        for candidate in Customer.objects.filter(name_query):
+            if candidate.id not in seen_ids:
+                seen_ids.add(candidate.id)
+                candidates.append(candidate)
+
+    # Strategy 3: match candidates by address (if no phone and no name)
+    address = _extract_address_group(lookup_row)
+    if address and not phone and not name_group:
+        for candidate in Customer.objects.filter(address_line1__iexact=address):
+            if candidate.id not in seen_ids:
+                seen_ids.add(candidate.id)
+                candidates.append(candidate)
+
+    for candidate in candidates:
+        candidate_row = {
+            'company_upload_name': candidate.company_upload_name or '',
+            'first_name': candidate.first_name or '',
+            'last_name': candidate.last_name or '',
+            'phone': _normalize_phone_field(candidate.phone or ''),
+            'address_line1': candidate.address_line1 or '',
+        }
+        if _rows_are_duplicates(lookup_row, candidate_row):
+            return candidate
+
+    return None
+
+
+def _resolve_customer_company_id(user, company_id=None):
+    user_role = (getattr(user, 'role', '') or '').strip().lower()
+
+    if not getattr(user, 'is_authenticated', False):
+        return None, Response({'error': 'Authentication required.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if company_id not in (None, ''):
+        try:
+            company_id = int(company_id)
+        except (TypeError, ValueError):
+            return None, Response({'error': 'Invalid company_id.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user_role != 'techadmin' and not user.companies.filter(id=company_id).exists():
+            return None, Response({'error': 'Unauthorized company.'}, status=status.HTTP_403_FORBIDDEN)
+
+        return company_id, None
+
+    company = user.companies.first()
+    if not company:
+        return None, Response({'error': 'No company associated with user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return company.id, None
+
+
+def _customer_queryset_for_user(user, company_id=None):
+    user_role = (getattr(user, 'role', '') or '').strip().lower()
+
+    if not getattr(user, 'is_authenticated', False):
+        return Customer.objects.none()
+
+    companies_manager = getattr(user, 'companies', None)
+    if companies_manager is None:
+        return Customer.objects.none()
+
+    if user_role == 'techadmin':
+        queryset = Customer.objects.all()
+        if company_id not in (None, ''):
+            queryset = queryset.filter(company_id=company_id)
+        return queryset
+
+    company_ids = list(companies_manager.values_list('id', flat=True))
+    if not company_ids:
+        return Customer.objects.none()
+
+    if company_id not in (None, ''):
+        try:
+            company_id = int(company_id)
+        except (TypeError, ValueError):
+            return Customer.objects.none()
+
+        if company_id not in company_ids:
+            return Customer.objects.none()
+
+        company_ids = [company_id]
+
+    return Customer.objects.filter(company_id__in=company_ids)
+
+
+def _customer_table_columns(table_name=CUSTOMER_TABLE_NAME):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = %s
+            ORDER BY ORDINAL_POSITION
+            """,
+            [table_name],
+        )
+        return [row[0] for row in cursor.fetchall()]
+
+
+def _campaign_queryset_for_user(user, company_id=None):
+    if not getattr(user, 'is_authenticated', False):
+        return Campaign.objects.none()
+
+    user_role = (getattr(user, 'role', '') or '').strip().lower()
+    queryset = Campaign.objects.all()
+
+    if user_role == 'techadmin':
+        if company_id in (None, ''):
+            return queryset
+        try:
+            return queryset.filter(company_id=int(company_id))
+        except (TypeError, ValueError):
+            return Campaign.objects.none()
+
+    company_ids = list(getattr(user, 'companies', None).values_list('id', flat=True)) if getattr(user, 'companies', None) else []
+    if not company_ids:
+        return Campaign.objects.none()
+
+    if company_id not in (None, ''):
+        try:
+            company_id = int(company_id)
+        except (TypeError, ValueError):
+            return Campaign.objects.none()
+
+        if company_id not in company_ids:
+            return Campaign.objects.none()
+
+        company_ids = [company_id]
+
+    return queryset.filter(company_id__in=company_ids)
+
+
+def _user_can_access_company(user, company_id):
+    user_role = (getattr(user, 'role', '') or '').strip().lower()
+
+    if user_role == 'techadmin':
+        return True
+
+    companies_manager = getattr(user, 'companies', None)
+    if companies_manager is None:
+        return False
+
+    return companies_manager.filter(id=company_id).exists()
+
+
+def _campaign_access_response(user, campaign):
+    if not _user_can_access_company(user, campaign.company_id):
+        return Response({'error': 'Unauthorized campaign.'}, status=status.HTTP_403_FORBIDDEN)
+    return None
+
+
+def _snapshot_lead_from_customer(customer, campaign):
+    phone = getattr(customer, 'phone', None) or getattr(customer, 'phone_number', '') or ''
+    address_line1 = getattr(customer, 'address_line1', None) or getattr(customer, 'address_line_1', '') or ''
+    address_line2 = getattr(customer, 'address_line2', None) or getattr(customer, 'address_line_2', '') or ''
+    addr_parts = [part for part in [address_line1, address_line2] if part]
+    combined_addr = ', '.join(addr_parts)
+
+    return CampaignLead(
+        campaign=campaign,
+        customer=customer,
+        first_name=customer.first_name or '',
+        last_name=customer.last_name or '',
+        phone=phone,
+        address_line1=combined_addr or address_line1,
+        city=customer.city or '',
+        state=customer.state or '',
+    )
+
+
+def _build_campaign_lead_defaults(customer):
+    phone = getattr(customer, 'phone', None) or getattr(customer, 'phone_number', '') or ''
+    address_line1 = getattr(customer, 'address_line1', None) or getattr(customer, 'address_line_1', '') or ''
+    address_line2 = getattr(customer, 'address_line2', None) or getattr(customer, 'address_line_2', '') or ''
+    combined_address = ', '.join([part for part in [address_line1, address_line2] if part])
+
+    return {
+        'first_name': customer.first_name or '',
+        'last_name': customer.last_name or '',
+        'phone': phone,
+        'address_line1': combined_address or address_line1,
+        'city': customer.city or '',
+        'state': customer.state or '',
+        'client_review': getattr(customer, 'reviews', '') or '',
+    }
+
+
+def _create_campaign_lead_for_customer(campaign, customer):
+    existing_lead = CampaignLead.objects.filter(
+        campaign_id=campaign.id,
+        customer_id=customer.id,
+    ).first()
+    if existing_lead:
+        return existing_lead, False
+
+    lead = CampaignLead.objects.create(
+        campaign=campaign,
+        customer=customer,
+        **_build_campaign_lead_defaults(customer),
+    )
+    return lead, True
+
+
+def _delete_customer_if_orphaned(customer):
+    if not customer:
+        return
+
+    if customer.campaign_leads.exists():
+        return
+
+    is_manual_customer = not bool(getattr(customer, 'excel_name', '').strip()) and getattr(customer, 'file_uploaded_at', None) is None
+    if is_manual_customer:
+        customer.delete()
+
+
+# logger = logging.getLogger(__name__)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def campaigns_api(request):
+    if request.method == 'GET':
+        campaigns = Campaign.objects.all().order_by('-id')
+        serializer = CampaignSerializer(campaigns, many=True)
+        return Response(serializer.data)
+
+    name = _normalize_text(request.data.get('name'))
+    description = _normalize_text(request.data.get('description'))
+    start_date = request.data.get('start_date')
+    company = request.user.companies.first() if getattr(request.user, 'companies', None) else None
+
+    if not name or not start_date:
+        return Response({'error': 'name and start_date are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not company:
+        return Response({'error': 'No company associated with user.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = CampaignSerializer(
+        data={
+            'name': name,
+            'description': description,
+            'start_date': start_date,
+            'company_id': company.id,
+        },
+        context={'request': request},
+    )
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    campaign = serializer.save()
+    return Response(CampaignSerializer(campaign).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def campaign_detail_api(request, campaign_id):
+    campaign = Campaign.objects.filter(id=campaign_id).first()
+    if not campaign:
+        return Response({'error': 'Campaign not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'DELETE':
+        campaign.delete()
+        return Response({'message': 'Campaign deleted successfully.', 'deleted_id': campaign_id})
+
+    payload = {}
+    for field in ['name', 'description', 'start_date', 'status']:
+        if field in request.data:
+            payload[field] = request.data.get(field)
+
+    serializer = CampaignSerializer(campaign, data=payload, partial=True, context={'request': request})
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer.save()
+    return Response(CampaignSerializer(campaign).data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def campaign_leads_api(request, campaign_id):
+    meta = request.META if hasattr(request, 'META') else {}
+    remote = meta.get('REMOTE_ADDR') or meta.get('HTTP_X_FORWARDED_FOR')
+    referer = meta.get('HTTP_REFERER')
+    ua = meta.get('HTTP_USER_AGENT')
+    logger.info("campaign_leads_api called: campaign_id=%s user=%s remote=%s referer=%s ua=%s data_keys=%s", campaign_id, getattr(request.user, 'id', None), remote, referer, ua, list(request.data.keys()) if hasattr(request, 'data') else None)
+    campaign = Campaign.objects.select_related('company').filter(id=campaign_id).first()
+    if not campaign:
+        return Response({'error': 'Campaign not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        leads = campaign.leads.select_related('customer').order_by('-id')
+        serializer = CampaignLeadSerializer(leads, many=True)
+        data = serializer.data
+
+        # Ensure returned address includes both customer address lines when available
+        for lead_obj, lead_dict in zip(leads, data):
+            try:
+                cust = getattr(lead_obj, 'customer', None)
+                if cust is not None:
+                    parts = []
+                    if getattr(cust, 'address_line1', None):
+                        parts.append(cust.address_line1)
+                    if getattr(cust, 'address_line2', None):
+                        parts.append(cust.address_line2)
+                    combined = ', '.join([p for p in parts if p])
+                    if combined:
+                        lead_dict['address_line1'] = combined
+                    if not lead_dict.get('client_review'):
+                        lead_dict['client_review'] = getattr(cust, 'reviews', '') or ''
+                    if not lead_dict.get('reviews'):
+                        lead_dict['reviews'] = getattr(cust, 'reviews', '') or ''
+                    if not lead_dict.get('customer_reviews'):
+                        lead_dict['customer_reviews'] = getattr(cust, 'reviews', '') or ''
+            except Exception:
+                # if anything goes wrong, keep serialized value
+                pass
+
+        return Response(data)
+
+    customer_ids = request.data.get('customer_ids', [])
+    if not isinstance(customer_ids, list) or not customer_ids:
+        return Response({'error': 'customer_ids must be a non-empty list.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    normalized_customer_ids = []
+    for item in customer_ids:
+        try:
+            normalized_customer_ids.append(int(item))
+        except (TypeError, ValueError):
+            return Response({'error': 'customer_ids must contain integers.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    customers = Customer.objects.filter(id__in=normalized_customer_ids)
+    if not customers.exists():
+        return Response({'error': 'No valid customers found for this campaign.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    added_count = 0
+    existing_count = 0
+    created_lead_ids = []
+    created_leads = []
+
+    for customer in customers:
+        lead, created = _create_campaign_lead_for_customer(campaign, customer)
+        if created:
+            logger.info("CampaignLead created: id=%s campaign=%s customer=%s", lead.id, campaign_id, customer.id)
+            added_count += 1
+            created_lead_ids.append(lead.id)
+            created_leads.append(lead)
+        else:
+            existing_count += 1
+
+    created_leads_data = CampaignLeadSerializer(created_leads, many=True).data if created_leads else []
+
+    return Response({
+        'message': 'Leads processed successfully.',
+        'added_count': added_count,
+        'existing_count': existing_count,
+        'lead_ids': created_lead_ids,
+        'leads': created_leads_data,
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def campaign_lead_detail_api(request, campaign_id, lead_id):
+    campaign = Campaign.objects.select_related('company').filter(id=campaign_id).first()
+    if not campaign:
+        return Response({'error': 'Campaign not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    lead = CampaignLead.objects.filter(id=lead_id, campaign_id=campaign_id).first()
+    if not lead:
+        return Response({'error': 'Lead not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    allowed_fields = {
+        'dispatch_date',
+        'expected_delivery_date',
+        'actual_delivery_date',
+        'courier_name',
+        'products',
+        'docat',
+        'client_status',
+        'courier_status',
+        'courier_description',
+        'address_line1',
+        'status',
+        'notes',
+        'client_review',
+    }
+    payload = {key: value for key, value in request.data.items() if key in allowed_fields}
+
+    docat_value = str(payload.pop('docat', '') or '').strip()
+    if docat_value:
+        customer = lead.customer
+        if customer and customer.docat != docat_value:
+            customer.docat = docat_value
+            customer.save(update_fields=['docat', 'updated_at'])
+
+    serializer = CampaignLeadSerializer(lead, data=payload, partial=True)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer.save()
+    return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def campaign_lead_attempts_api(request, campaign_id, lead_id):
+    campaign = Campaign.objects.select_related('company').filter(id=campaign_id).first()
+    if not campaign:
+        return Response({'error': 'Campaign not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    lead = CampaignLead.objects.filter(id=lead_id, campaign_id=campaign_id).first()
+    if not lead:
+        return Response({'error': 'Lead not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        attempts = lead.attempts.all().order_by('attempt_number')
+        serializer = CampaignLeadAttemptSerializer(attempts, many=True)
+        return Response(serializer.data)
+
+    # POST - create a new attempt
+    data = request.data or {}
+    # determine next attempt number
+    existing_count = lead.attempts.count()
+    attempt_number = existing_count + 1
+
+    allowed = ['dispatch_date', 'expected_delivery_date', 'actual_delivery_date', 'courier_name', 'courier_status', 'courier_description', 'notes', 'products']
+    payload = {k: data.get(k) for k in allowed if k in data}
+
+    attempt = CampaignLeadAttempt.objects.create(
+        lead=lead,
+        attempt_number=attempt_number,
+        **{k: payload.get(k) for k in payload}
+    )
+
+    # Optionally update the lead's main fields to reflect latest attempt
+    update_payload = {}
+    for field in ['dispatch_date', 'expected_delivery_date', 'actual_delivery_date', 'courier_name', 'courier_status', 'courier_description', 'notes', 'products']:
+        if field in payload and payload.get(field) is not None:
+            update_payload[field] = payload.get(field)
+
+    if update_payload:
+        serializer = CampaignLeadSerializer(lead, data=update_payload, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+
+    return Response(CampaignLeadAttemptSerializer(attempt).data, status=status.HTTP_201_CREATED)
+
+
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def campaign_lead_delete_api(request, campaign_id, lead_id):
+    campaign = Campaign.objects.select_related('company').filter(id=campaign_id).first()
+    if not campaign:
+        return Response({'error': 'Campaign not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    lead = CampaignLead.objects.filter(id=lead_id, campaign_id=campaign_id).first()
+    if not lead:
+        return Response({'error': 'Lead not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    customer = lead.customer
+    lead.delete()
+
+    _delete_customer_if_orphaned(customer)
+
+    return Response({'message': 'Lead deleted successfully.', 'deleted_id': lead_id})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def campaign_leads_bulk_api(request, campaign_id):
+    campaign = Campaign.objects.select_related('company').filter(id=campaign_id).first()
+    if not campaign:
+        return Response({'error': 'Campaign not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    action = str(request.data.get('action') or '').strip().lower()
+    lead_ids = request.data.get('lead_ids') or []
+    if not isinstance(lead_ids, list) or not lead_ids:
+        return Response({'error': 'lead_ids must be a non-empty list.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    leads = CampaignLead.objects.filter(campaign_id=campaign_id, id__in=lead_ids)
+    found_ids = list(leads.values_list('id', flat=True))
+    missing_ids = [lead_id for lead_id in lead_ids if lead_id not in found_ids]
+    if missing_ids:
+        return Response({'error': 'Some leads were not found.', 'missing_ids': missing_ids}, status=status.HTTP_404_NOT_FOUND)
+
+    if action == 'delete':
+        deleted_count = leads.count()
+        customers_to_check = list(leads.select_related('customer').values_list('customer_id', flat=True))
+        leads.delete()
+
+        if customers_to_check:
+            orphaned_customers = Customer.objects.filter(id__in=customers_to_check)
+            for customer in orphaned_customers:
+                _delete_customer_if_orphaned(customer)
+
+        return Response({'message': 'Leads deleted successfully.', 'deleted_count': deleted_count, 'deleted_ids': lead_ids})
+
+    if action == 'update':
+        update_data = request.data.get('update') or {}
+        if not isinstance(update_data, dict):
+            return Response({'error': 'update must be an object.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        allowed_fields = {
+            'dispatch_date',
+            'expected_delivery_date',
+            'actual_delivery_date',
+            'courier_name',
+            'products',
+            'docat',
+            'client_status',
+            'courier_status',
+            'courier_description',
+            'address_line1',
+            'status',
+            'notes',
+            'client_review',
+        }
+        payload = {key: value for key, value in update_data.items() if key in allowed_fields}
+        if not payload:
+            return Response({'error': 'No valid update fields provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        docat_value = str(payload.pop('docat', '') or '').strip()
+        if docat_value:
+            customer_ids = leads.values_list('customer_id', flat=True).distinct()
+            customers = Customer.objects.filter(id__in=customer_ids)
+            for customer in customers:
+                if customer.docat != docat_value:
+                    customer.docat = docat_value
+                    customer.save(update_fields=['docat', 'updated_at'])
+
+        updated_ids = []
+        for lead in leads:
+            serializer = CampaignLeadSerializer(lead, data=payload, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            updated_ids.append(lead.id)
+
+        return Response({'message': 'Leads updated successfully.', 'updated_ids': updated_ids})
+
+    return Response({'error': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def courier_names_api(request):
+    courier_names = (
+        CampaignLead.objects.all()
+        .exclude(courier_name__isnull=True)
+        .exclude(courier_name='')
+        .values_list('courier_name', flat=True)
+        .distinct()
+    )
+
+    normalized = {}
+    for name in courier_names:
+        cleaned = _normalize_text(name)
+        if not cleaned:
+          continue
+        key = cleaned.lower()
+        if key not in normalized:
+            normalized[key] = cleaned
+
+    couriers = [normalized[key] for key in sorted(normalized.keys(), key=lambda value: normalized[value].lower())]
+    return Response({'couriers': couriers})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def product_names_api(request):
+    # Collect product names from CampaignLead.products (comma-separated) and Product model
+    names = set()
+
+    # From Product model
+    for p in Product.objects.all().values_list('product_name', flat=True):
+        if p:
+            names.add(str(p).strip())
+
+    # From campaign leads products field
+    for raw in CampaignLead.objects.exclude(products__isnull=True).exclude(products='').values_list('products', flat=True):
+        if not raw:
+            continue
+        for part in str(raw).split(','):
+            part = part.strip()
+            if part:
+                names.add(part)
+
+    sorted_names = sorted(names, key=lambda s: s.lower())
+    return Response({'products': sorted_names})
+
+
+@api_view(['GET'])
+def city_autofill(request):
+    city = request.GET.get('city', '')
+    if not city or len(city.strip()) < 2:
+        return Response({})
+
+    try:
+        response = requests.get(
+            'https://nominatim.openstreetmap.org/search',
+            params={
+                'city': city.strip(),
+                'format': 'json',
+                'limit': 1,
+                'addressdetails': 1,
+            },
+            headers={'User-Agent': 'DevlonApp/1.0'},
+            timeout=5,
+        )
+
+        if response.status_code == 429:
+            return Response({})
+
+        data = response.json()
+        if data and data[0].get('address'):
+            addr = data[0]['address']
+            return Response({
+                'state': addr.get('state', ''),
+                'country': addr.get('country', ''),
+            })
+    except Exception:
+        pass
+
+    return Response({})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_table_columns(request):
+    table_name = request.GET.get('table', CUSTOMER_TABLE_NAME)
+
+    try:
+        columns = _customer_table_columns(table_name)
+        return Response({'columns': columns, 'table': table_name})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_customer(request):
+    return _add_customer_impl(request)
+
+
+def _add_customer_impl(request):
+    payload = _normalize_customer_payload(request.data)
+    allow_duplicate = bool(request.data.get('allow_duplicate'))
+    if not payload['first_name'] or not payload['phone']:
+        return Response({'error': 'First name and phone are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not allow_duplicate and Customer.objects.filter(phone=payload['phone']).exists():
+        return Response({'error': 'Customer with this phone already exists.', 'duplicate': True}, status=status.HTTP_400_BAD_REQUEST)
+
+    customer = Customer.objects.create(created_by=request.user, **payload)
+    return Response(
+        {
+            'message': 'Customer added successfully.',
+            'id': customer.id,
+            'customer': {'id': customer.id},
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def customers_api(request):
+    if request.method == 'GET':
+        return _get_customers_impl(request)
+    return _add_customer_impl(request)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_customers(request):
+    return _get_customers_impl(request)
+
+
+def _get_customers_impl(request):
+    queryset = Customer.objects.all()
+
+    rows = list(queryset.order_by('-id').values())
+    return Response({'customers': rows, 'total': len(rows)})
+
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def customer_detail_api(request, customer_id):
+    queryset = _customer_queryset_for_user(request.user)
+    customer = queryset.filter(id=customer_id).first()
+
+    if not customer:
+        return Response({'error': 'Customer not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        return Response({'customer': Customer.objects.filter(id=customer_id).values().first()})
+
+    payload = _normalize_customer_payload(request.data)
+    if not payload['first_name'] or not payload['phone']:
+        return Response({'error': 'First name and phone are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    for field, value in payload.items():
+        setattr(customer, field, value)
+    customer.save()
+
+    return Response({
+        'message': 'Customer updated successfully.',
+        'customer': Customer.objects.filter(id=customer_id).values().first(),
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_customer_excel(request):
+    request_payload = request.data
+    column_mapping = {}
+    excel_name = ''
+    campaign = None
+    attach_to_campaign = False
+    if isinstance(request_payload, list):
+        rows = request_payload
+        table_name = CUSTOMER_TABLE_NAME
+    else:
+        rows = request_payload.get('rows', [])
+        column_mapping = request_payload.get('column_mapping', {})
+        table_name = request_payload.get('table', CUSTOMER_TABLE_NAME)
+        excel_name = _normalize_text(request_payload.get('file_name') or request_payload.get('excel_name'))
+        attach_to_campaign = bool(request_payload.get('attach_to_campaign', False))
+
+    if not isinstance(request_payload, list) and attach_to_campaign:
+        campaign_id = request_payload.get('campaign_id')
+        if campaign_id not in (None, ''):
+            try:
+                campaign_id = int(campaign_id)
+            except (TypeError, ValueError):
+                return Response({'error': 'Invalid campaign_id.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            campaign = Campaign.objects.select_related('company').filter(id=campaign_id).first()
+            if not campaign:
+                return Response({'error': 'Campaign not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if table_name != CUSTOMER_TABLE_NAME:
+        return Response({'error': 'Only api_customer is supported.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not rows:
+        return Response({'error': 'rows are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    allowed_columns = set(_customer_table_columns(table_name))
+    allowed_columns.update({'company_id', 'created_by_id'})
+    upload_time = timezone.now()
+
+    inserted_rows = []
+    created_ids = []
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        if column_mapping:
+            customer_data = {}
+            for excel_col, db_col in column_mapping.items():
+                normalized_db_col = CUSTOMER_FIELD_ALIASES.get(db_col, db_col)
+                if normalized_db_col in {'company_id', 'created_by_id', 'id', 'created_at', 'updated_at'}:
+                    continue
+                if normalized_db_col in allowed_columns:
+                    customer_data[normalized_db_col] = _normalize_text(row.get(excel_col))
+        else:
+            customer_data = {}
+            for key, value in row.items():
+                if value is None:
+                    continue
+
+                normalized_key = CUSTOMER_FIELD_ALIASES.get(key, key)
+                if normalized_key in {'company_id', 'created_by_id', 'id', 'created_at', 'updated_at'}:
+                    continue
+                if normalized_key in allowed_columns:
+                    customer_data[normalized_key] = _normalize_text(value)
+
+        if customer_data.get('phone'):
+            customer_data['phone'] = _normalize_phone_field(customer_data['phone'])
+
+        customer = _find_existing_customer(customer_data)
+        if customer:
+            fields_updated = False
+            for field, value in customer_data.items():
+                if value and not getattr(customer, field, ''):
+                    setattr(customer, field, value)
+                    fields_updated = True
+
+            if excel_name and not getattr(customer, 'excel_name', ''):
+                customer.excel_name = excel_name
+                fields_updated = True
+
+            if getattr(customer, 'file_uploaded_at', None) is None:
+                customer.file_uploaded_at = upload_time
+                fields_updated = True
+
+            if fields_updated:
+                customer.save()
+        else:
+            customer = Customer.objects.create(
+                created_by=request.user,
+                excel_name=excel_name,
+                file_uploaded_at=upload_time,
+                **customer_data,
+            )
+
+        if campaign is not None:
+            _create_campaign_lead_for_customer(campaign, customer)
+
+        inserted_rows.append(Customer.objects.filter(id=customer.id).values().first())
+        created_ids.append(customer.id)
+
+    meta = request.META if hasattr(request, 'META') else {}
+    remote = meta.get('REMOTE_ADDR') or meta.get('HTTP_X_FORWARDED_FOR')
+    referer = meta.get('HTTP_REFERER')
+    ua = meta.get('HTTP_USER_AGENT')
+    logger.info("upload_customer_excel: user=%s excel_name=%s rows=%s created_ids=%s remote=%s referer=%s ua=%s", getattr(request.user, 'id', None), excel_name, len(rows), created_ids, remote, referer, ua)
+
+    for row in inserted_rows:
+        if isinstance(row, dict) and row.get('phone'):
+            row['phone'] = _normalize_phone_field(row.get('phone'))
+
+    all_inserted_phones = set()
+    all_inserted_names = set()
+    for row in inserted_rows:
+        all_inserted_phones.update(_extract_phones(row.get('phone')))
+        all_inserted_names.update(_extract_name_group(row))
+
+    candidate_rows = []
+    seen_ids = set()
+
+    if all_inserted_phones:
+        q = Q()
+        for phone in all_inserted_phones:
+            q |= Q(phone__icontains=phone)
+        for candidate in Customer.objects.filter(q).values():
+            if candidate['id'] not in seen_ids:
+                seen_ids.add(candidate['id'])
+                candidate_rows.append(candidate)
+
+    if all_inserted_names:
+        q = Q()
+        for name in all_inserted_names:
+            q |= (
+                Q(company_upload_name__iexact=name) |
+                Q(first_name__iexact=name) |
+                Q(last_name__iexact=name)
+            )
+        for candidate in Customer.objects.filter(q).values():
+            if candidate['id'] not in seen_ids:
+                seen_ids.add(candidate['id'])
+                candidate_rows.append(candidate)
+
+    candidates_by_phone = defaultdict(list)
+    candidates_by_name = defaultdict(list)
+    for candidate in candidate_rows:
+        for phone in _extract_phones(candidate.get('phone')):
+            candidates_by_phone[phone].append(candidate)
+        for name in _extract_name_group(candidate):
+            candidates_by_name[name].append(candidate)
+
+    duplicate_ids = set()
+    duplicate_rows = []
+
+    def _register_duplicate(row):
+        if row['id'] not in duplicate_ids:
+            duplicate_ids.add(row['id'])
+            duplicate_rows.append(row)
+
+    # Flag repeated IDs from the same upload before comparing against the database.
+    seen_id_count = {}
+    for row in inserted_rows:
+        row_id = row.get('id')
+        seen_id_count[row_id] = seen_id_count.get(row_id, 0) + 1
+
+    intra_duplicate_ids = {row_id for row_id, count in seen_id_count.items() if count > 1}
+
+    for row in inserted_rows:
+        if row.get('id') in intra_duplicate_ids:
+            duplicate_rows.append(row)
+            duplicate_ids.add(row['id'])
+
+    for row in inserted_rows:
+        row_phones = _extract_phones(row.get('phone'))
+        row_names = _extract_name_group(row)
+
+        seen = set()
+        potential = []
+
+        for phone in row_phones:
+            for candidate in candidates_by_phone.get(phone, []):
+                if candidate['id'] not in seen and candidate['id'] != row['id']:
+                    seen.add(candidate['id'])
+                    potential.append(candidate)
+
+        for name in row_names:
+            for candidate in candidates_by_name.get(name, []):
+                if candidate['id'] not in seen and candidate['id'] != row['id']:
+                    seen.add(candidate['id'])
+                    potential.append(candidate)
+
+        matches = [candidate for candidate in potential if _rows_are_duplicates(row, candidate)]
+
+        if matches:
+            _register_duplicate(row)
+            for match in matches:
+                _register_duplicate(match)
+
+    return Response({
+        'message': 'Upload complete.',
+        'inserted': len(inserted_rows),
+        'updated': len(inserted_rows),
+        'inserted_rows': inserted_rows,
+        'duplicate_rows': duplicate_rows,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_duplicate_groups(request):
+    queryset = Customer.objects.all()
+    all_customers = list(queryset.order_by('id').values())
+
+    grouped = []
+    used_ids = set()
+
+    for i, c1 in enumerate(all_customers):
+        if c1['id'] in used_ids:
+            continue
+
+        group = [c1]
+
+        for c2 in all_customers[i + 1:]:
+            if c2['id'] in used_ids:
+                continue
+
+            if _rows_are_duplicates(c1, c2):
+                group.append(c2)
+                used_ids.add(c2['id'])
+
+        if len(group) > 1:
+            used_ids.add(c1['id'])
+
+            all_fields = ['first_name', 'last_name', 'phone', 'address_line1', 'address_line2', 'city', 'state', 'country', 'pincode']
+            conflicting = []
+            same = []
+            for field in all_fields:
+                vals = list({_normalize_for_comparison(str(r.get(field, '') or '')) for r in group})
+                if len(vals) > 1:
+                    conflicting.append(field)
+                else:
+                    same.append(field)
+
+            grouped.append({
+                'duplicate_column': 'party_name_phone_address',
+                'rows': group,
+                'count': len(group),
+                'conflicting_fields': conflicting,
+                'same_fields': same,
+            })
+
+    return Response({'groups': grouped, 'total_groups': len(grouped)})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def handle_duplicate_action(request):
+    action = (request.data.get('action') or '').strip().lower()
+    ids = request.data.get('ids', [])
+    keep_ids = request.data.get('keep_ids', [])
+    merge_data = request.data.get('merge_data', {})
+    delete_ids = request.data.get('delete_ids', [])
+
+    if not action or not ids:
+        return Response({'error': 'action and ids are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        customer_ids = [int(item) for item in ids]
+        keep_ids = {int(item) for item in keep_ids}
+        delete_ids = [int(item) for item in delete_ids] if delete_ids else []
+    except (TypeError, ValueError):
+        return Response({'error': 'ids must be integers.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    queryset = Customer.objects.filter(id__in=customer_ids)
+
+    if action == 'keep':
+        return Response({'message': 'All rows kept as-is.'})
+
+    if action == 'delete':
+        target_ids = delete_ids or customer_ids
+        deleted_count, _ = Customer.objects.filter(id__in=target_ids).delete()
+        return Response({'message': f'{deleted_count} row(s) deleted.', 'deleted_ids': target_ids})
+
+    if action == 'merge':
+        merge_ids = [item for item in customer_ids if item not in keep_ids]
+        if len(merge_ids) < 2:
+            return Response({'error': 'Need at least 2 rows to merge.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        rows = list(Customer.objects.filter(id__in=merge_ids).order_by('id'))
+        if not rows:
+            return Response({'error': 'No rows found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        merged_data = {}
+        mergeable_fields = ['first_name', 'last_name', 'phone', 'address_line1', 'address_line2', 'country', 'city', 'state', 'pincode']
+        for field in mergeable_fields:
+            values = [getattr(row, field) for row in rows if getattr(row, field) not in (None, '')]
+            unique_values = list(dict.fromkeys(values))
+            if len(unique_values) == 1:
+                merged_data[field] = unique_values[0]
+            elif field in merge_data:
+                merged_data[field] = merge_data[field]
+            elif values:
+                merged_data[field] = values[0]
+
+        primary_row = rows[0]
+        for field, value in merged_data.items():
+            setattr(primary_row, field, value)
+        primary_row.save()
+
+        delete_later = [row.id for row in rows[1:]]
+        if delete_later:
+            Customer.objects.filter(id__in=delete_later).delete()
+
+        return Response({
+            'message': f'Merged into ID {primary_row.id}. Deleted {len(delete_later)} row(s). Kept {len(keep_ids)} row(s) separately.',
+            'merged_id': primary_row.id,
+            'kept_ids': list(keep_ids),
+            'deleted_ids': delete_later,
+        })
+
+    return Response({'error': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 class CanViewRoles(BasePermission):
     """
@@ -649,6 +1936,7 @@ def get_all_products(request):
     user = request.user
     company_id = request.query_params.get('company_id')
     warehouse_id = request.query_params.get('warehouse_id')
+    status_filter = request.query_params.get('status', 'all')
 
     user_companies = user.companies.all()
     visible_users = get_all_descendant_users(user)
@@ -675,10 +1963,42 @@ def get_all_products(request):
         except ValueError:
             return Response({'error': 'Invalid warehouse_id'}, status=400)
 
+    if status_filter == 'active':
+        products = products.filter(is_active=True)
+    elif status_filter == 'disabled':
+        products = products.filter(is_active=False)
+    elif status_filter != 'all':
+        return Response({'error': 'Invalid status. Use active, disabled, or all.'}, status=400)
+
     products = products.order_by('-created_at')
 
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def bulk_toggle_product_status(request):
+    product_ids = request.data.get('product_ids', [])
+    action = request.data.get('action', '').lower()
+
+    if not product_ids or not isinstance(product_ids, list):
+        return Response({'error': 'product_ids must be a non-empty list.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if action not in ('enable', 'disable'):
+        return Response({'error': 'action must be enable or disable.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        product_ids = [int(pid) for pid in product_ids]
+    except (TypeError, ValueError):
+        return Response({'error': 'product_ids must contain integers.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    is_active = action == 'enable'
+    user_companies = request.user.companies.all()
+    products = Product.objects.filter(id__in=product_ids, company__in=user_companies)
+    updated = products.update(is_active=is_active)
+
+    return Response({'updated': updated}, status=status.HTTP_200_OK)
 
 
 
@@ -686,20 +2006,25 @@ def get_all_products(request):
 @permission_classes([IsAuthenticated])
 def add_product(request):
     company_id = request.data.get('company_id')
-    product_name = request.data.get('product_name')
+    product_name = normalize_product_name(request.data.get('product_name'))
 
     if not company_id:
         return Response({'company_id': ['This field is required.']}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not product_name:
+        return Response({'message': 'Product name is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # Check that the user belongs to the given company
     if not request.user.companies.filter(id=company_id).exists():
         return Response({'message': 'You do not belong to this company.'}, status=status.HTTP_403_FORBIDDEN)
 
-    # Check uniqueness within company
-    if Product.objects.filter(product_name=product_name, company_id=company_id).exists():
+    # Check uniqueness within company (normalized name)
+    if find_product_by_normalized_name(company_id, product_name):
         return Response({'message': 'Product already exists in your company'}, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = ProductSerializer(data=request.data, context={'user': request.user})
+    payload = request.data.copy()
+    payload['product_name'] = product_name
+    serializer = ProductSerializer(data=payload, context={'user': request.user})
 
     if serializer.is_valid():
         serializer.save()
@@ -719,7 +2044,17 @@ def update_product(request, pk):
     except Product.DoesNotExist:
         return Response({'message': 'Product not found or not in your company'}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ProductSerializer(product, data=request.data, partial=True, context={'company': product.company, 'user': request.user})
+    payload = request.data.copy()
+    if 'product_name' in payload:
+        normalized_name = normalize_product_name(payload.get('product_name'))
+        if not normalized_name:
+            return Response({'message': 'Product name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        duplicate = find_product_by_normalized_name(product.company_id, normalized_name, exclude_id=product.id)
+        if duplicate:
+            return Response({'message': 'Product already exists in your company'}, status=status.HTTP_400_BAD_REQUEST)
+        payload['product_name'] = normalized_name
+
+    serializer = ProductSerializer(product, data=payload, partial=True, context={'company': product.company, 'user': request.user})
 
     if serializer.is_valid():
         serializer.save()
@@ -975,13 +2310,13 @@ def upload_product_quantities(request):
         except (TypeError, ValueError):
             quantity = 0
 
-        last_occurrences[product_name.strip()] = quantity
+        last_occurrences[normalize_product_name(product_name)] = quantity
 
     for product_name, quantity in last_occurrences.items():
-        product, created = Product.objects.get_or_create(
-            product_name=product_name,
-            company=company,
-            defaults={'created_by': request.user}
+        product, created = get_or_create_normalized_product(
+            company,
+            product_name,
+            created_by=request.user,
         )
         
         if not created and product.created_by is None:
@@ -992,7 +2327,7 @@ def upload_product_quantities(request):
         if created:
             new_records += 1
         else:
-            was_updated = update_dynamic_quantity(product_name, date, quantity, company.id)
+            was_updated = update_dynamic_quantity(product.product_name, date, quantity, company.id)
             if was_updated:
                 updated_records += 1
 
@@ -1089,11 +2424,11 @@ def sync_product_quantities(request):
         if not product_name:
             continue
 
-        # Ensure product exists or create
-        product, created = Product.objects.get_or_create(
-            product_name=product_name.strip(),
-            company=company,
-            defaults={'created_by': request.user}
+        # Ensure product exists or create (match by normalized name)
+        product, created = get_or_create_normalized_product(
+            company,
+            product_name,
+            created_by=request.user,
         )
 
         # Ensure created_by is set
@@ -1102,7 +2437,7 @@ def sync_product_quantities(request):
             product.save(update_fields=['created_by'])
 
         # Update dynamic quantity
-        if not created and update_dynamic_quantity(product_name, date, closing_quantity, company.id):
+        if not created and update_dynamic_quantity(product.product_name, date, closing_quantity, company.id):
             updated_records += 1
         elif created:
             new_records += 1
@@ -1259,7 +2594,10 @@ def get_current_and_previous_stock(request):
     except ValueError:
         return Response({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    products = Product.objects.filter(warehouses__id=warehouse_id).distinct()
+    products = Product.objects.filter(
+        warehouses__id=warehouse_id,
+        is_active=True,
+    ).distinct()
 
     # ✅ Find latest previous date with any stock entry before stock_date
     previous_date = ProductStock.objects.filter(
@@ -1421,7 +2759,7 @@ def get_product_stock_overview(request):
     # --- Build stock_map using per-product-per-warehouse logic ---
     stock_map = defaultdict(lambda: defaultdict(dict))
 
-    for product in Product.objects.all():
+    for product in Product.objects.filter(is_active=True):
         for warehouse_id in selected_warehouses:
             prev_date = warehouse_prev_date_map.get(warehouse_id)
             for date in [current_date, prev_date]:
@@ -1473,10 +2811,10 @@ def get_product_stock_overview(request):
     if has_curr_col:
         dynamic_cols.append(col_current)
 
-    # --- Fetch dynamic columns from Product table ---
+    # --- Fetch dynamic columns from Product table (active products only) ---
     with connection.cursor() as cursor:
         col_str = ', '.join(f"`{col}`" for col in dynamic_cols)
-        cursor.execute(f"SELECT {col_str} FROM `Product`")
+        cursor.execute(f"SELECT {col_str} FROM `Product` WHERE `is_active` = 1")
         rows = cursor.fetchall()
 
     # Map product_id → dynamic stock info
@@ -1780,7 +3118,7 @@ def get_selected_prev_date_stock(request):
 
         col_str = ', '.join(f"`{col}`" for col in dynamic_cols)
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT {col_str} FROM Product")
+            cursor.execute(f"SELECT {col_str} FROM Product WHERE `is_active` = 1")
             product_rows = cursor.fetchall()
 
         product_data = {}
@@ -2612,12 +3950,18 @@ def report_dropdowns(request):
 
 from django.http import JsonResponse
 from django.db import connections
+from django.db.utils import OperationalError
 
 def static_reorder_report(request):
     # Get dynamic months from frontend
-    avg_months = int(request.GET.get("avg_months", 3))
-    projection_months = int(request.GET.get("projection_months", 5))
-   
+    try:
+        avg_months = int(request.GET.get("avg_months", 3))
+        projection_months = int(request.GET.get("projection_months", 5))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Invalid filter values"}, status=400)
+
+    if not (1 <= avg_months <= 12 and 1 <= projection_months <= 12):
+        return JsonResponse({"error": "Months must be between 1 and 12"}, status=400)
     query = f"""
 SELECT
     ROW_NUMBER() OVER () AS `Sr No`,
@@ -2693,25 +4037,40 @@ LEFT JOIN (
     ON p.itemguid = stk.itemguid;
 """
 
-    with connections['tally'].cursor() as cursor:
-        cursor.execute(query)
-        columns = [col[0] for col in cursor.description]
-        data = []
-        for row in cursor.fetchall():
-            row_dict = {}
-            for col, val in zip(columns, row):
-                if col in [
-                    "Stock", "Pending Purchase Order", "Total Stock", "Avg. Sale",
-                    "Months", "Total Required", "Need to Order", "Final Order",
-                    "RMB Value", "USD Value"
-                ]:
-                    try:
-                        row_dict[col] = float(val) if '.' in str(val) else int(val)
-                    except (ValueError, TypeError):
-                        row_dict[col] = 0
-                else:
-                    row_dict[col] = val
-            data.append(row_dict)
+    try:
+        with connections['tally'].cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            data = []
+            for row in cursor.fetchall():
+                row_dict = {}
+                for col, val in zip(columns, row):
+                    if col in [
+                        "Stock", "Pending Purchase Order", "Total Stock", "Avg. Sale",
+                        "Months", "Total Required", "Need to Order", "Final Order",
+                        "RMB Value", "USD Value"
+                    ]:
+                        try:
+                            row_dict[col] = float(val) if '.' in str(val) else int(val)
+                        except (ValueError, TypeError):
+                            row_dict[col] = 0
+                    else:
+                        row_dict[col] = val
+                data.append(row_dict)
+    except OperationalError as exc:
+        logger.error("Tally database connection failed for static reorder report: %s", exc)
+        return JsonResponse(
+            {
+                "error": (
+                    "Unable to connect to the Tally database. "
+                    "Check network/VPN access to db.sky9.ai and try again."
+                )
+            },
+            status=503,
+        )
+    except Exception as exc:
+        logger.exception("Static reorder report query failed")
+        return JsonResponse({"error": "Failed to load reorder report"}, status=500)
 
     formatted_columns = []
     for col in columns:

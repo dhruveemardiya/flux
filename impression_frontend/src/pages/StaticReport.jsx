@@ -13,6 +13,7 @@ const StaticReport = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [columnDefs, setColumnDefs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [searchText, setSearchText] = useState("");
 // ✅ Directly initialize from localStorage or fallback to default values
@@ -45,6 +46,7 @@ useEffect(() => {
 
   const fetchStaticData = async () => {
     setLoading(true);
+    setError("");
     try {
      let url = `${BASE_URL}/api/static-reorder-report/`;
 if (avgSaleFilter !== "all" || monthsFilter !== "all") {
@@ -56,8 +58,15 @@ if (avgSaleFilter !== "all" || monthsFilter !== "all") {
 }
 
 const response = await fetch(url);
+    const data = await response.json().catch(() => ({}));
 
-    const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || `Failed to load report (${response.status})`);
+      }
+
+      if (!Array.isArray(data.columns) || !Array.isArray(data.rows)) {
+        throw new Error(data.error || "Invalid report response");
+      }
 
      const normalizedCols = data.columns.map((col, index) => {
   const field = col.field.replace(/[.\s]/g, "_");
@@ -103,6 +112,10 @@ const response = await fetch(url);
       setFilteredData(normalizedRows); // initialize
     } catch (error) {
       console.error("❌ Failed to load static reorder report", error);
+      setError(error.message || "Failed to load report");
+      setColumnDefs([]);
+      setRowData([]);
+      setFilteredData([]);
     } finally {
       setLoading(false);
     }
@@ -252,8 +265,11 @@ const handleArrowKeyEditCommit = (event) => {
         <div className="flex justify-center items-center py-10">
           <ClipLoader size={45} color="#1d4ed8" />
         </div>
+      ) : error ? (
+        <div className="text-red-600 py-6 text-center">{error}</div>
       ) : (
         <AgGridReact
+  theme="legacy"
   rowData={filteredData}
   columnDefs={columnDefs}
   pagination={true}
