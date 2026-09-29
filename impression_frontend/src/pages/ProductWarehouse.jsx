@@ -54,10 +54,14 @@ const ProductWarehouse = () => {
 
         const [warehouseResponse, productResponse] = await Promise.all([
           axios.get(`${BASE_URL}/api/get_warehouse/?company_id=${companyId}`, config),
-          axios.get(`${BASE_URL}/api/get_products/?company_id=${companyId}`, config),
+          axios.get(`${BASE_URL}/api/get_products/?company_id=${companyId}&status=active`, config),
         ]);
 
-        const formattedProducts = productResponse.data.map((product) => {
+        const activeProducts = (productResponse.data || []).filter(
+          (product) => product.is_active !== false
+        );
+
+        const formattedProducts = activeProducts.map((product) => {
           const warehouseMap = {};
           (product.warehouses || []).forEach((id) => {
             warehouseMap[id] = true;
