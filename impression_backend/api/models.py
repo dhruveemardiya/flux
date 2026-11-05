@@ -10,7 +10,7 @@ class Role(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'Role'  # Custom table name
+        db_table = 'role'  # Existing Railway table
 
     def __str__(self):
         return self.role
@@ -53,7 +53,7 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = "username"
 
     class Meta:
-        db_table = 'Users'  
+        db_table = 'users'
 
     def __str__(self):
         return self.username
@@ -119,7 +119,7 @@ class Product(models.Model):
     )
 
     class Meta:
-        db_table = 'Product'
+        db_table = 'product'
         unique_together = ('product_name', 'company')  # optional stricter uniqueness
 
     def __str__(self):
