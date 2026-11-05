@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import BASE_URL from "./config";
 import { useOutletContext } from "react-router-dom";
 import { productNameMatchesSearch } from "../utils/productSearch";
@@ -26,6 +27,8 @@ export default function StockCount({
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [sortKey, setSortKey] = useState("product_name");
+    const [sortDirection, setSortDirection] = useState("asc");
     const { selectedCompany } = useOutletContext();
     // const [showPrevDate, setShowPrevDate] = useState(false);
     // const [showPrevDateUser, setShowPrevDateUser] = useState(false);// Ensure this is passed as a prop or managed via context
@@ -42,26 +45,74 @@ export default function StockCount({
         );
     }, [stockData, searchTerm]);
 
-    const totalPages = Math.max(1, Math.ceil(filteredStockData.length / rowsPerPage) || 1);
+    const sortedStockData = useMemo(() => {
+        const list = [...filteredStockData];
+        if (!sortKey) return list;
+
+        return list.sort((a, b) => {
+            let valA, valB;
+            if (sortKey === "product_name") {
+                valA = (a.product_name ?? "").toString().trim();
+                valB = (b.product_name ?? "").toString().trim();
+                const cmp = valA.localeCompare(valB, undefined, { numeric: true, sensitivity: "base" });
+                return sortDirection === "asc" ? cmp : -cmp;
+            } else if (sortKey === "prev") {
+                valA = a.prev === "" || a.prev === null || a.prev === undefined ? -Infinity : Number(a.prev);
+                valB = b.prev === "" || b.prev === null || b.prev === undefined ? -Infinity : Number(b.prev);
+                if (isNaN(valA)) valA = -Infinity;
+                if (isNaN(valB)) valB = -Infinity;
+                return sortDirection === "asc" ? valA - valB : valB - valA;
+            } else if (sortKey === "current") {
+                valA = a.current === "" || a.current === null || a.current === undefined ? -Infinity : Number(a.current);
+                valB = b.current === "" || b.current === null || b.current === undefined ? -Infinity : Number(b.current);
+                if (isNaN(valA)) valA = -Infinity;
+                if (isNaN(valB)) valB = -Infinity;
+                return sortDirection === "asc" ? valA - valB : valB - valA;
+            }
+            return 0;
+        });
+    }, [filteredStockData, sortKey, sortDirection]);
+
+    const totalPages = Math.max(1, Math.ceil(sortedStockData.length / rowsPerPage) || 1);
 
     const paginatedStockData = useMemo(() => {
         const start = (currentPage - 1) * rowsPerPage;
-        return filteredStockData.slice(start, start + rowsPerPage);
-    }, [filteredStockData, currentPage, rowsPerPage]);
+        return sortedStockData.slice(start, start + rowsPerPage);
+    }, [sortedStockData, currentPage, rowsPerPage]);
 
     const startIndex =
-        filteredStockData.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
-    const endIndex = Math.min(currentPage * rowsPerPage, filteredStockData.length);
+        sortedStockData.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+    const endIndex = Math.min(currentPage * rowsPerPage, sortedStockData.length);
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, rowsPerPage]);
+    }, [searchTerm, rowsPerPage, sortKey, sortDirection]);
 
     useEffect(() => {
         if (currentPage > totalPages) {
             setCurrentPage(totalPages);
         }
     }, [currentPage, totalPages]);
+
+    const handleSort = (key) => {
+        if (sortKey === key) {
+            setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+        } else {
+            setSortKey(key);
+            setSortDirection("asc");
+        }
+    };
+
+    const renderSortIcon = (key) => {
+        if (sortKey !== key) {
+            return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400 opacity-60 inline-block ml-1 group-hover:opacity-100 transition-opacity" />;
+        }
+        return sortDirection === "asc" ? (
+            <ArrowUp className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 inline-block ml-1" />
+        ) : (
+            <ArrowDown className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 inline-block ml-1" />
+        );
+    };
 
     const getExportRows = (rows) =>
         rows.map((item) => {
@@ -127,7 +178,7 @@ export default function StockCount({
         if (showPrevDate) headers.push("Previous Stock");
         headers.push("Current Stock");
 
-        const rowsToExport = searchTerm.trim() ? filteredStockData : stockData;
+        const rowsToExport = sortedStockData;
         const data = includeData
             ? getExportRows(rowsToExport)
             : rowsToExport.map((item) => [item.product_name]);
@@ -161,7 +212,7 @@ doc.text(`Stock Count on ${today}`, doc.internal.pageSize.getWidth() / 2, 13, { 
         if (includeData && showPrevDate) headers.push("Previous Stock");
         headers.push("Current Stock"); // Always add Current Stock, even if includeData is false
     
-        const rowsToExport = searchTerm.trim() ? filteredStockData : stockData;
+        const rowsToExport = sortedStockData;
         const data = includeData
             ? getExportRows(rowsToExport)
             : rowsToExport.map((item) => {
@@ -499,31 +550,67 @@ useEffect(() => {
                     </div>
                 )}
 
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap gap-2">
-                    <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm"
-                        onClick={() => exportToExcel(true)}
-                    >
-                        Export to Excel
-                    </button>
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
-                        onClick={() => exportToExcel(false)}
-                    >
-                        Export without Data (Excel)
-                    </button>
-                    <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm"
-                        onClick={() => exportToPDF(false)}
-                    >
-                        Export without Data (PDF)
-                    </button>
-                    <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
-                        onClick={() => exportToPDF(true)}
-                    >
-                        Export to PDF
-                    </button>
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800/60 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition-colors shadow-sm"
+                            onClick={() => exportToExcel(true)}
+                        >
+                            Export to Excel
+                        </button>
+                        <button
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition-colors shadow-sm"
+                            onClick={() => exportToExcel(false)}
+                        >
+                            Export without Data (Excel)
+                        </button>
+                        <button
+                            className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition-colors shadow-sm"
+                            onClick={() => exportToPDF(false)}
+                        >
+                            Export without Data (PDF)
+                        </button>
+                        <button
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition-colors shadow-sm"
+                            onClick={() => exportToPDF(true)}
+                        >
+                            Export to PDF
+                        </button>
                     </div>
 
-                    <div className="flex items-center gap-2 ml-auto flex-wrap justify-end">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                        {/* Sort Dropdown for compact space utilization */}
+                        <div className="flex items-center gap-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1">
+                            <label htmlFor="stockCountSortSelect" className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap font-medium">
+                                Sort:
+                            </label>
+                            <select
+                                id="stockCountSortSelect"
+                                value={`${sortKey}_${sortDirection}`}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    const lastUnderscore = val.lastIndexOf("_");
+                                    const key = val.substring(0, lastUnderscore);
+                                    const dir = val.substring(lastUnderscore + 1);
+                                    setSortKey(key);
+                                    setSortDirection(dir);
+                                }}
+                                className="bg-transparent text-xs sm:text-sm text-gray-800 dark:text-gray-100 outline-none cursor-pointer"
+                            >
+                                <option value="product_name_asc" className="dark:bg-gray-800">Product (A → Z)</option>
+                                <option value="product_name_desc" className="dark:bg-gray-800">Product (Z → A)</option>
+                                <option value="current_desc" className="dark:bg-gray-800">Current Stock (High → Low)</option>
+                                <option value="current_asc" className="dark:bg-gray-800">Current Stock (Low → High)</option>
+                                {shouldShowPrevStock && (
+                                    <>
+                                        <option value="prev_desc" className="dark:bg-gray-800">Previous Stock (High → Low)</option>
+                                        <option value="prev_asc" className="dark:bg-gray-800">Previous Stock (Low → High)</option>
+                                    </>
+                                )}
+                            </select>
+                        </div>
+
+                        {/* Search products */}
                         <input
                             type="text"
                             value={searchTerm}
@@ -532,12 +619,14 @@ useEffect(() => {
                                 setEditingProductId(null);
                             }}
                             placeholder="Search products..."
-                            className="w-full sm:w-64 px-3 py-2 rounded border border-gray-300 dark:bg-gray-800 dark:border-gray-700 text-sm"
+                            className="w-full sm:w-56 px-3 py-1.5 rounded border border-gray-300 dark:bg-gray-800 dark:border-gray-700 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
+
+                        {/* Rows per page */}
                         <select
                             value={rowsPerPage}
                             onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                            className="px-3 py-2 rounded border border-gray-300 dark:bg-gray-800 dark:border-gray-700 text-sm"
+                            className="px-2.5 py-1.5 rounded border border-gray-300 dark:bg-gray-800 dark:border-gray-700 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
                             {[10, 20, 30, 50, 100].map((num) => (
                                 <option key={num} value={num}>
@@ -545,9 +634,10 @@ useEffect(() => {
                                 </option>
                             ))}
                         </select>
+
                         {searchTerm.trim() && (
-                            <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                {filteredStockData.length} of {stockData.length}
+                            <span className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
+                                {sortedStockData.length} of {stockData.length}
                             </span>
                         )}
                     </div>
@@ -555,34 +645,60 @@ useEffect(() => {
 
                 <div className="overflow-x-auto border rounded-lg shadow dark:border-gray-700">
                     <table className="min-w-full text-sm text-left border-collapse">
-                        <thead className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+                        <thead className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 select-none">
                             <tr>
-                                <th className="p-3 border-b dark:border-gray-700">Product Name</th>
+                                <th
+                                    onClick={() => handleSort("product_name")}
+                                    className="p-3 border-b dark:border-gray-700 cursor-pointer group hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                                    title="Click to sort by Product Name (Ascending / Descending)"
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="font-semibold">Product Name</span>
+                                        {renderSortIcon("product_name")}
+                                    </div>
+                                </th>
 
                                 {/* Conditionally show 'Stock on' column */}
                                 {shouldShowPrevStock && (
-                                    <th className="p-3 border-b dark:border-gray-700">
-                                        Stock on {
-                                            (() => {
-                                                try {
-                                                    const validPrev = stockData.find((item) => item.prev_date);
-                                                    if (validPrev) {
-                                                        return new Date(validPrev.prev_date).toLocaleDateString("en-GB");
-                                                    } else {
-                                                        const yesterday = new Date();
-                                                        yesterday.setDate(yesterday.getDate() - 1);
-                                                        return yesterday.toLocaleDateString("en-GB");
-                                                    }
-                                                } catch (err) {
-                                                    // console.error("Error rendering prev stock date:", err);
-                                                    return "Invalid Date"; // Fallback visible to user
+                                    <th
+                                        onClick={() => handleSort("prev")}
+                                        className="p-3 border-b dark:border-gray-700 cursor-pointer group hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                                        title="Click to sort by Previous Stock (Ascending / Descending)"
+                                    >
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="font-semibold">
+                                                Stock on {
+                                                    (() => {
+                                                        try {
+                                                            const validPrev = stockData.find((item) => item.prev_date);
+                                                            if (validPrev) {
+                                                                return new Date(validPrev.prev_date).toLocaleDateString("en-GB");
+                                                            } else {
+                                                                const yesterday = new Date();
+                                                                yesterday.setDate(yesterday.getDate() - 1);
+                                                                return yesterday.toLocaleDateString("en-GB");
+                                                            }
+                                                        } catch (err) {
+                                                            return "Invalid Date";
+                                                        }
+                                                    })()
                                                 }
-                                            })()
-                                        }
+                                            </span>
+                                            {renderSortIcon("prev")}
+                                        </div>
                                     </th>
                                 )}
 
-                                <th className="p-3 border-b dark:border-gray-700">Current Stock</th>
+                                <th
+                                    onClick={() => handleSort("current")}
+                                    className="p-3 border-b dark:border-gray-700 cursor-pointer group hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                                    title="Click to sort by Current Stock (Ascending / Descending)"
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="font-semibold">Current Stock</span>
+                                        {renderSortIcon("current")}
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -647,9 +763,9 @@ useEffect(() => {
 
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {filteredStockData.length === 0
+                        {sortedStockData.length === 0
                             ? "Showing 0 entries"
-                            : `Showing ${startIndex} to ${endIndex} of ${filteredStockData.length} entries`}
+                            : `Showing ${startIndex} to ${endIndex} of ${sortedStockData.length} entries`}
                     </span>
                     <div className="flex items-center gap-3">
                         <button
@@ -666,7 +782,7 @@ useEffect(() => {
                         <button
                             type="button"
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages || filteredStockData.length === 0}
+                            disabled={currentPage === totalPages || sortedStockData.length === 0}
                             className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                             Next

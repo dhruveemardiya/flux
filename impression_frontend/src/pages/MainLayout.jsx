@@ -410,15 +410,15 @@
 // }
 
 
-import { Outlet, Link, useLocation } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   FaBars, FaSignOutAlt, FaMoon, FaSun,
   FaBox, FaChartBar, FaUsers, FaUpload, FaKey, FaDatabase,
   FaPlus, FaCheckSquare, FaUserPlus, FaUserShield, FaTools,
   FaTimes, FaBuilding,
-  FaCog, FaAddressCard
-  , FaMapMarkerAlt
+  FaCog, FaAddressCard, FaMapMarkerAlt, FaUserFriends,
+  FaBell, FaTasks
 } from "react-icons/fa";
 import axios from "axios";
 import BASE_URL from "./config";
@@ -433,6 +433,7 @@ const resolveMediaUrl = (url) => {
 
 export default function MainLayout({ user: propUser }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [user, setUser] = useState(propUser || null);
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const [darkMode, setDarkMode] = useState(false);
@@ -441,10 +442,45 @@ export default function MainLayout({ user: propUser }) {
     inventory: true,
     account: true,
     campaign: true,
+    lead_generation: true,
   });
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
+
+  // Notification Bell State
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationRef = useRef(null);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+      try {
+        const res = await axios.get(`${BASE_URL}/api/tasks/notifications/`, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setNotifications(res.data.notifications || []);
+      } catch (err) {
+        // silent fail
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchUserAndCompanies = async () => {
@@ -592,10 +628,26 @@ export default function MainLayout({ user: propUser }) {
       };
     })();
 
+    const storedRole = localStorage.getItem("userRole") || "";
+    const rawRole = (user?.role || storedRole || "").trim().toLowerCase();
+    const userRole = rawRole.replace(/[\s_-]+/g, "");
+    const isLeadAuthorized = ["admin", "superadmin", "techadmin"].includes(userRole);
+
+    const leadGenSection = {
+      key: "lead_generation",
+      title: "Lead Generation",
+      icon: FaUserFriends,
+      items: [
+        { icon: FaUserFriends, text: "Lead Generation", path: "/lead-generation" },
+        { icon: FaTasks, text: "Task Manager", path: "/task-manager" },
+      ],
+    };
+
     return [
       inventorySection,
       { key: "account", title: "Account", icon: FaUsers, items: accountItems },
       campaignSection,
+      leadGenSection,
     ].filter((section) => section.items.length > 0);
   }, [permissionsOpen, user?.role]);
 
@@ -673,6 +725,7 @@ export default function MainLayout({ user: propUser }) {
         inventory: false,
         account: false,
         campaign: false,
+        lead_generation: false,
         [sectionKey]: true,
       }));
       return;
@@ -837,7 +890,95 @@ export default function MainLayout({ user: propUser }) {
             </button>
 
             <div className="flex items-center gap-4">
-            
+              {/* Notification Bell with interactive Follow-up Reminders Dropdown */}
+              <div className="relative" ref={notificationRef}>
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  className="relative text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 p-1.5 rounded-full transition-colors duration-200 cursor-pointer flex items-center justify-center"
+                  title="Follow-up Reminders"
+                  aria-label="Follow-up Reminders"
+                >
+                  <FaBell className="text-lg" />
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[10px] h-4.5 min-w-[18px] px-1 rounded-full flex items-center justify-center shadow-xs animate-bounce">
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Dropdown Menu */}
+                {notificationsOpen && (
+                  <div className="absolute right-0 mt-2.5 w-80 sm:w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-2">
+                        <FaBell className="text-blue-600 text-sm" />
+                        <span className="font-bold text-xs sm:text-sm text-gray-800 dark:text-white">
+                          Follow-up Reminders
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                        {notifications.length} pending
+                      </span>
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-xs text-gray-500 dark:text-gray-400 italic">
+                          No upcoming follow-up reminders right now.
+                        </div>
+                      ) : (
+                        notifications.map((n) => (
+                          <div
+                            key={n.id}
+                            onClick={() => {
+                              setNotificationsOpen(false);
+                              navigate(`/task-manager?taskId=${n.task_id}`);
+                            }}
+                            className="p-3 hover:bg-blue-50/50 dark:hover:bg-gray-800/70 cursor-pointer transition flex items-start gap-2.5"
+                          >
+                            <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${n.is_overdue ? 'bg-red-500' : n.is_due_today ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <p className="font-bold text-xs text-gray-900 dark:text-white truncate">
+                                  {n.company_name}
+                                </p>
+                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                                  n.is_overdue ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300' :
+                                  n.is_due_today ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' :
+                                  'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                                }`}>
+                                  {n.is_overdue ? 'Overdue' : n.is_due_today ? 'Due Today' : `Due ${n.next_followup_date}`}
+                                </span>
+                              </div>
+                              {n.contact_person && (
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                  Contact: {n.contact_person} {n.phone ? `• ${n.phone}` : ''}
+                                </p>
+                              )}
+                              {n.future_discussion && (
+                                <p className="text-[11px] text-gray-600 dark:text-gray-300 mt-1 line-clamp-1 italic">
+                                  "{n.future_discussion}"
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="p-2 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 text-center">
+                      <Link
+                        to="/task-manager"
+                        onClick={() => setNotificationsOpen(false)}
+                        className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline block py-1"
+                      >
+                        View All Assigned Tasks →
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <button
                 onClick={() => setDarkMode(!darkMode)}
@@ -861,8 +1002,8 @@ export default function MainLayout({ user: propUser }) {
         </div>
 
         {/* Content Outlet */}
-               {/* Main Content Area */}
-        <main className="flex-grow p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 overflow-y-auto">
+        {/* Main Content Area */}
+        <main className="flex-grow min-w-0 max-w-full p-2.5 sm:p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 overflow-y-auto overflow-x-hidden">
           <Outlet context={{ selectedCompany }} />
         </main>
 

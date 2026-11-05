@@ -1,6 +1,16 @@
 # serializers.py
+import re
 from rest_framework import serializers
-from .models import Role, User,Warehouse, Product,ProductWarehouse, UserWarehouse, Customer, Campaign, CampaignLead, CampaignLeadAttempt
+from django.contrib.auth import get_user_model
+from .models import (
+    Role, User, Warehouse, Product, ProductWarehouse, UserWarehouse,
+    Customer, Campaign, CampaignLead, CampaignLeadAttempt,
+    ShowPrevDateSetting, Company, ProductStock, SavedReport,
+    Lead, LeadAssignmentHistory, LeadStatusHistory
+)
+
+User = get_user_model()
+
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,35 +18,25 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = ['id', 'role', 'created_at', 'updated_at']
 
     def validate_role(self, value):
-        request = self.context.get('request')  # Get the user from context
+        request = self.context.get('request')
         trimmed = value.strip()
         normalized = trimmed.lower().replace(" ", "")
 
-        # Check for superadmin role restriction
         if normalized == "superadmin":
-            # Only allow techadmin to create it
             if not request or request.user.role.lower() != "techadmin":
                 raise serializers.ValidationError("Only 'techadmin' can create a 'superadmin' role.")
 
-        # Block duplicate roles (case-insensitive)
         if Role.objects.filter(role__iexact=trimmed).exists():
             raise serializers.ValidationError("Role already exists.")
 
         return trimmed
 
 
-import re
-from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from .models import UserWarehouse, Role, Company
-
-User = get_user_model()
-
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
     warehouses = serializers.SerializerMethodField()
     role_id = serializers.SerializerMethodField()
-    companies = serializers.PrimaryKeyRelatedField(many=True, queryset=Company.objects.all(), required=False)  # Added
+    companies = serializers.PrimaryKeyRelatedField(many=True, queryset=Company.objects.all(), required=False)
 
     class Meta:
         model = User
@@ -61,31 +61,30 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
-        companies = validated_data.pop('companies', None)  # Added
+        companies = validated_data.pop('companies', None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
             instance.set_password(password)
         instance.save()
         if companies is not None:
-            instance.companies.set(companies)  # Added
+            instance.companies.set(companies)
         return instance
 
     def create(self, validated_data):
-            password = validated_data.pop('password')
-            companies = validated_data.pop('companies', [])
-            request = self.context.get('request')  # Get current request
-            created_by = request.user if request else None
+        password = validated_data.pop('password')
+        companies = validated_data.pop('companies', [])
+        request = self.context.get('request')
+        created_by = request.user if request else None
 
-            user = User(**validated_data)
-            user.set_password(password)
-            if created_by:
-                user.created_by = created_by
-            user.save()
-            if companies:
-                user.companies.set(companies)
-            return user
-
+        user = User(**validated_data)
+        user.set_password(password)
+        if created_by:
+            user.created_by = created_by
+        user.save()
+        if companies:
+            user.companies.set(companies)
+        return user
 
     def get_warehouses(self, obj):
         return list(UserWarehouse.objects.filter(user=obj).values_list('warehouse_id', flat=True))
@@ -98,11 +97,6 @@ class UserSerializer(serializers.ModelSerializer):
             return None
 
 
-
-
-
-from rest_framework import serializers
-from .models import ShowPrevDateSetting
 class ShowPrevDateSettingSerializer(serializers.ModelSerializer):
     show = serializers.BooleanField()
 
@@ -111,14 +105,10 @@ class ShowPrevDateSettingSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'show']
 
 
-
-from rest_framework import serializers
-from .models import Warehouse
-
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
-        fields = ['id', 'name', 'code', 'description', 'created_at', 'updated_at','company_id']
+        fields = ['id', 'name', 'code', 'description', 'created_at', 'updated_at', 'company_id']
 
     def validate_name(self, value):
         request = self.context.get('request')
@@ -137,10 +127,6 @@ class WarehouseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Warehouse name must be unique within your company.")
         return value
 
-
-
-
-# serializers.py
 
 class ProductSerializer(serializers.ModelSerializer):
     warehouses = serializers.ListField(write_only=True, required=False)
@@ -175,12 +161,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        # Add warehouses as list of IDs
         representation['warehouses'] = [w.id for w in instance.warehouses.all()]
-        # Add company_id explicitly
         representation['company_id'] = instance.company_id
         return representation
-
 
 
 class UserWarehouseSerializer(serializers.ModelSerializer):
@@ -189,13 +172,11 @@ class UserWarehouseSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'warehouse', 'created_at', 'updated_at']
 
 
-from rest_framework import serializers
-from .models import ProductStock
-
 class ProductStockSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductStock
         fields = '__all__'
+
 
 class CompanySerializer(serializers.ModelSerializer):
     remove_logo = serializers.BooleanField(write_only=True, required=False)
@@ -214,7 +195,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return representation
 
     def create(self, validated_data):
-        validated_data.pop('remove_logo', None)  # Remove if present
+        validated_data.pop('remove_logo', None)
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -224,9 +205,6 @@ class CompanySerializer(serializers.ModelSerializer):
             instance.logo = None
         return super().update(instance, validated_data)
 
-
-from rest_framework import serializers
-from .models import SavedReport
 
 class SavedReportSerializer(serializers.ModelSerializer):
     class Meta:
@@ -306,11 +284,151 @@ class CampaignLeadSerializer(serializers.ModelSerializer):
             return ''
 
 
-
-
 class CampaignLeadAttemptSerializer(serializers.ModelSerializer):
     class Meta:
         model = CampaignLeadAttempt
-        fields = ['id', 'lead', 'attempt_number', 'dispatch_date', 'expected_delivery_date', 'actual_delivery_date', 'courier_name', 'courier_status', 'courier_description', 'notes', 'created_at']
+        fields = [
+            'id', 'lead', 'attempt_number', 'dispatch_date', 'expected_delivery_date',
+            'actual_delivery_date', 'courier_name', 'courier_status', 'courier_description',
+            'notes', 'created_at'
+        ]
         read_only_fields = ['id', 'lead', 'attempt_number', 'created_at']
-    
+
+
+class LeadAssignmentHistorySerializer(serializers.ModelSerializer):
+    assigned_to_name = serializers.SerializerMethodField()
+    assigned_by_name = serializers.SerializerMethodField()
+    previous_assignee_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LeadAssignmentHistory
+        fields = [
+            'id', 'lead', 'assigned_to', 'assigned_to_name',
+            'assigned_by', 'assigned_by_name',
+            'previous_assignee', 'previous_assignee_name',
+            'assigned_at', 'notes'
+        ]
+
+    def get_assigned_to_name(self, obj):
+        if obj.assigned_to:
+            return f"{obj.assigned_to.first_name} {obj.assigned_to.last_name}".strip() or obj.assigned_to.username
+        return "Unassigned"
+
+    def get_assigned_by_name(self, obj):
+        if obj.assigned_by:
+            return f"{obj.assigned_by.first_name} {obj.assigned_by.last_name}".strip() or obj.assigned_by.username
+        return ""
+
+    def get_previous_assignee_name(self, obj):
+        if obj.previous_assignee:
+            return f"{obj.previous_assignee.first_name} {obj.previous_assignee.last_name}".strip() or obj.previous_assignee.username
+        return ""
+
+
+class LeadStatusHistorySerializer(serializers.ModelSerializer):
+    changed_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LeadStatusHistory
+        fields = [
+            'id', 'lead', 'old_status', 'new_status',
+            'changed_by', 'changed_by_name',
+            'changed_at', 'notes'
+        ]
+
+    def get_changed_by_name(self, obj):
+        if obj.changed_by:
+            return f"{obj.changed_by.first_name} {obj.changed_by.last_name}".strip() or obj.changed_by.username
+        return ""
+
+
+class LeadSerializer(serializers.ModelSerializer):
+    assigned_to_name = serializers.SerializerMethodField()
+    assigned_by_name = serializers.SerializerMethodField()
+    status_updated_by_name = serializers.SerializerMethodField()
+    assigned_to_display = serializers.SerializerMethodField()
+    company_name_display = serializers.SerializerMethodField()
+    assigned_users = serializers.SerializerMethodField()
+    assigned_user_ids = serializers.SerializerMethodField()
+    assigned_to_names = serializers.SerializerMethodField()
+    assignment_history = LeadAssignmentHistorySerializer(many=True, read_only=True)
+    status_history = LeadStatusHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Lead
+        fields = [
+            'id', 'company_name', 'first_name', 'last_name',
+            'email', 'secondary_email', 'phone', 'secondary_phone', 'mobile', 'secondary_mobile',
+            'address_line1', 'address_line2', 'city', 'state', 'country', 'pincode',
+            'website', 'segment', 'category', 'rating', 'notes', 'raw_data',
+            'status', 'status_updated_by', 'status_updated_by_name', 'status_updated_at',
+            'company', 'company_name_display',
+            'assigned_to', 'assigned_to_name', 'assigned_to_display',
+            'assigned_users', 'assigned_user_ids', 'assigned_to_names',
+            'assigned_by', 'assigned_by_name',
+            'assigned_at', 'created_by', 'excel_name',
+            'created_at', 'updated_at', 'assignment_history', 'status_history'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by']
+
+    def get_assigned_users(self, obj):
+        result = []
+        seen = set()
+        try:
+            for assignment in obj.assignments.all():
+                u = assignment.user
+                if u and u.id not in seen:
+                    seen.add(u.id)
+                    name = f"{u.first_name} {u.last_name}".strip() or u.username
+                    result.append({
+                        'id': u.id,
+                        'username': u.username,
+                        'name': name,
+                        'role': getattr(u, 'role', '')
+                    })
+        except Exception:
+            pass
+
+        if not result and obj.assigned_to and obj.assigned_to.id not in seen:
+            u = obj.assigned_to
+            name = f"{u.first_name} {u.last_name}".strip() or u.username
+            result.append({
+                'id': u.id,
+                'username': u.username,
+                'name': name,
+                'role': getattr(u, 'role', '')
+            })
+
+        return result
+
+    def get_assigned_user_ids(self, obj):
+        return [u['id'] for u in self.get_assigned_users(obj)]
+
+    def get_assigned_to_names(self, obj):
+        return [u['name'] for u in self.get_assigned_users(obj)]
+
+    def get_assigned_to_name(self, obj):
+        names = self.get_assigned_to_names(obj)
+        if names:
+            return ", ".join(names)
+        if obj.assigned_to:
+            return f"{obj.assigned_to.first_name} {obj.assigned_to.last_name}".strip() or obj.assigned_to.username
+        return "Unassigned"
+
+    def get_assigned_by_name(self, obj):
+        if obj.assigned_to and obj.assigned_by:
+            return f"{obj.assigned_by.first_name} {obj.assigned_by.last_name}".strip() or obj.assigned_by.username
+        return ""
+
+    def get_status_updated_by_name(self, obj):
+        if obj.status_updated_by:
+            return f"{obj.status_updated_by.first_name} {obj.status_updated_by.last_name}".strip() or obj.status_updated_by.username
+        return ""
+
+    def get_assigned_to_display(self, obj):
+        return self.get_assigned_to_name(obj)
+
+    def get_company_name_display(self, obj):
+        if obj.company:
+            return obj.company.name
+        return ""

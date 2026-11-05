@@ -39,16 +39,27 @@ export default function Login({ setUser }) {
     }
   } catch (error) {
     if (error.response) {
-      const errorMessage = error.response.data.error || error.response.data.detail;
-      if (errorMessage.includes('username')) {
+      const data = error.response.data;
+      const errorMessage =
+        (typeof data === "string" ? data : null) ||
+        data?.error ||
+        data?.detail ||
+        data?.message ||
+        "";
+
+      if (typeof errorMessage === "string" && errorMessage.toLowerCase().includes("username")) {
         setError("Incorrect username. Please try again.");
-      } else if (errorMessage.includes('password')) {
+      } else if (typeof errorMessage === "string" && errorMessage.toLowerCase().includes("password")) {
         setError("Incorrect password. Please try again.");
+      } else if (error.response.status >= 500) {
+        setError("Server error (500). Please check backend server and database connection.");
+      } else if (typeof errorMessage === "string" && errorMessage.trim() && !errorMessage.trim().startsWith("<")) {
+        setError(errorMessage);
       } else {
-        setError("Login failed. Please try again.");
+        setError("Login failed. Please check your credentials and try again.");
       }
     } else {
-      setError("An unexpected error occurred. Please try again.");
+      setError("An unexpected error occurred. Please check network connection.");
     }
   }
 };

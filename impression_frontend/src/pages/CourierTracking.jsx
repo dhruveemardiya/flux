@@ -881,7 +881,7 @@ useEffect(() => {
   };
 
   const deleteCampaign = async (campaign) => {
-    const confirmed = window.confirm(`Delete campaign \"${campaign?.name || "this campaign"}\"?`);
+    const confirmed = window.confirm(`Delete campaign "${campaign?.name || "this campaign"}"?`);
     if (!confirmed) return;
 
     try {

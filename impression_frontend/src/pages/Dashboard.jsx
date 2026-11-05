@@ -1,8 +1,5 @@
 import React from "react";
-import MyChart from "../pages/MyChart";
-import ChartGrid from "./ChartGrid";
-const Dashboard = () => {
-  
-};
 
-export default Dashboard;
+export default function Dashboard() {
+  return <div className="w-full min-h-[80vh]"></div>;
+}

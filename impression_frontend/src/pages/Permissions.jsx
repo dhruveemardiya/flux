@@ -40,7 +40,7 @@ export default function PermissionsManager() {
   }, [users]);
 
   const fetchPermissions = () => {
-    axiosInstance.get("${BASE_URL}/api/permissions/").then((res) => setPermissions(res.data));
+    axiosInstance.get(`${BASE_URL}/api/permissions/`).then((res) => setPermissions(res.data));
   };
 
   const createPermission = (e) => {
@@ -51,7 +51,7 @@ export default function PermissionsManager() {
     }
 
     axiosInstance
-      .post("${BASE_URL}/api/permissions/", {
+      .post(`${BASE_URL}/api/permissions/`, {
         name: newPermission,
         code: newPermissionCode,
       })
@@ -87,7 +87,7 @@ export default function PermissionsManager() {
     setRolePermissionIds(updatedPermissions);
 
     axiosInstance
-      .post("${BASE_URL}/api/permissions/assign/", {
+      .post(`${BASE_URL}/api/permissions/assign/`, {
         role_id: selectedRoleId,
         permission_ids: [permissionId],
         assign_to_all_role_users: assignToAll,
@@ -111,7 +111,7 @@ export default function PermissionsManager() {
     }));
 
     axiosInstance
-      .post("${BASE_URL}/api/permissions/toggle/", {
+      .post(`${BASE_URL}/api/permissions/toggle/`, {
         role_id: selectedRoleId,
         user_ids: [userId],
         permission_id: permissionId,

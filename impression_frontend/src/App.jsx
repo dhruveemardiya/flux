@@ -44,6 +44,8 @@ import EditReport from "./pages/EditReport";
 import ViewReport from "./pages/ViewReport";
 import CreateReport from "./pages/CreateReport";
 import StaticReport from "./pages/StaticReport";
+import LeadGeneration from "./pages/LeadGeneration";
+import TaskManager from "./pages/TaskManager";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -78,22 +80,27 @@ export default function App() {
         });
 
         if (!settingsRes.ok) {
-          throw new Error("Failed to fetch settings");
-        }
+          if (settingsRes.status === 401) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("userRole");
+            return;
+          }
+          console.warn("Could not load settings:", settingsRes.statusText);
+        } else {
+          const settingsData = await settingsRes.json();
 
-        const settingsData = await settingsRes.json();
+          const userSetting = settingsData.find((s) => s.name === "show_prev_date_user");
+          const adminSetting = settingsData.find((s) => s.name === "show_prev_date");
 
-        const userSetting = settingsData.find((s) => s.name === "show_prev_date_user");
-        const adminSetting = settingsData.find((s) => s.name === "show_prev_date");
+          if (userSetting) {
+            const userValue = userSetting.show === true || userSetting.show === "true";
+            setShowPrevDateUser(userValue);
+          }
 
-        if (userSetting) {
-          const userValue = userSetting.show === true || userSetting.show === "true";
-          setShowPrevDateUser(userValue);
-        }
-
-        if (adminSetting) {
-          const adminValue = adminSetting.show === true || adminSetting.show === "true";
-          setShowPrevDate(adminValue);
+          if (adminSetting) {
+            const adminValue = adminSetting.show === true || adminSetting.show === "true";
+            setShowPrevDate(adminValue);
+          }
         }
 
         // Fetch logged-in user info
@@ -104,11 +111,16 @@ export default function App() {
         });
 
         if (!userRes.ok) {
-          throw new Error("Failed to fetch user info");
+          if (userRes.status === 401) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("userRole");
+            return;
+          }
+          console.warn("Could not load user info:", userRes.statusText);
+        } else {
+          const userData = await userRes.json();
+          setUser(userData);
         }
-
-        const userData = await userRes.json();
-        setUser(userData);
       } catch (error) {
         console.error("Error during initial fetch:", error);
       }
@@ -116,8 +128,8 @@ export default function App() {
 
     fetchInitialData();
   }, []);
-const allowedUserPaths = ["/stock-count", "/upload-excel", "/data-mapping", "/change-password", '/dashboard', '/campaigns/:id', '/campaign', '/courier-tracking', '/track-map', '/report-dashboard', '/reports/:id', '/static-report'];
-  const allowedtechadminPaths = ["/users","/create-report","/reports/:id","/edit-report/:id", "/create-permission", "/add-permission",'/dashboard','/add-role','/edit-user/:id','/add-user','/company','/add-company','/companies/edit/:id','/report-dashboard','/report-settings',"static-report"];
+const allowedUserPaths = ["/stock-count", "/upload-excel", "/data-mapping", "/change-password", '/dashboard', '/campaigns/:id', '/campaign', '/courier-tracking', '/track-map', '/report-dashboard', '/reports/:id', '/static-report', '/lead-generation', '/task-manager'];
+  const allowedtechadminPaths = ["/users","/create-report","/reports/:id","/edit-report/:id", "/create-permission", "/add-permission",'/dashboard','/add-role','/edit-user/:id','/add-user','/company','/add-company','/companies/edit/:id','/report-dashboard','/report-settings',"static-report", '/lead-generation', '/task-manager'];
 const adminAllowedPaths = [
   "/dashboard",
   "/users",
@@ -138,6 +150,8 @@ const adminAllowedPaths = [
   "/courier-tracking",
   "/campaigns/:id",
   "/track-map",
+  "/lead-generation",
+  "/task-manager",
 ];
 
 // Ensure techadmin and user lists contain campaign where appropriate
@@ -148,8 +162,17 @@ allowedUserPaths && allowedUserPaths.push && allowedUserPaths.push('/campaign','
 const RestrictedRoute = ({ children, path }) => {
   const location = useLocation();
   const hasWarnedRef = useRef(false);
+  const token = localStorage.getItem("authToken");
+  const storedRole = localStorage.getItem("userRole") || "";
+  const rawRole = (user?.role || storedRole || "").trim().toLowerCase();
+  const normalizedRole = rawRole.replace(/[\s_-]+/g, "");
 
-  if (user?.role === "User" && !allowedUserPaths.includes(path)) {
+  // Explicit check for Lead Generation and Task Manager: Accessible to all authorized logged-in users
+  if (path === "/lead-generation" || path === "/task-manager") {
+    return children;
+  }
+
+  if (normalizedRole === "user" && !allowedUserPaths.includes(path)) {
     if (!hasWarnedRef.current) {
       toast.error("Unauthorized Access!", {
         position: "top-right",
@@ -160,7 +183,7 @@ const RestrictedRoute = ({ children, path }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (user?.role === "techadmin" && !allowedtechadminPaths.includes(path)) {
+  if (normalizedRole === "techadmin" && !allowedtechadminPaths.includes(path)) {
     if (!hasWarnedRef.current) {
       toast.error("Access Denied!", {
         position: "top-right",
@@ -171,17 +194,16 @@ const RestrictedRoute = ({ children, path }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (user?.role === "admin" && !adminAllowedPaths.includes(path)) {
-  if (!hasWarnedRef.current) {
-    toast.error("Access Denied!", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    hasWarnedRef.current = true;
+  if (normalizedRole === "admin" && !adminAllowedPaths.includes(path)) {
+    if (!hasWarnedRef.current) {
+      toast.error("Access Denied!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      hasWarnedRef.current = true;
+    }
+    return <Navigate to="/dashboard" replace />;
   }
-  return <Navigate to="/dashboard" replace />;
-}
-
 
   return children;
 };
@@ -207,7 +229,7 @@ const RestrictedRoute = ({ children, path }) => {
               </PrivateRoute>
             }
           >
-            <Route path="dashboard" element={<RestrictedRoute path="/dashboard"><Dashboard /></RestrictedRoute>} />
+            <Route path="dashboard" element={<RestrictedRoute path="/dashboard"><Dashboard user={user} /></RestrictedRoute>} />
             <Route path="users" element={<RestrictedRoute path="/users"><Users /></RestrictedRoute>} />
             <Route path="add-user" element={<RestrictedRoute path="/add-user"><UserDetailsForm /></RestrictedRoute>} />
             <Route path="product" element={<RestrictedRoute path="/product"><ProductPage /></RestrictedRoute>} />
@@ -218,6 +240,8 @@ const RestrictedRoute = ({ children, path }) => {
             <Route path="upload-excel" element={<UploadFile user={user} />} />
             <Route path="data-mapping" element={<RestrictedRoute path="/data-mapping"><DataMapping /></RestrictedRoute>} />
             <Route path="campaign" element={<RestrictedRoute path="/campaign"><CampaignView /></RestrictedRoute>} />
+            <Route path="lead-generation" element={<RestrictedRoute path="/lead-generation"><LeadGeneration user={user} /></RestrictedRoute>} />
+            <Route path="task-manager" element={<RestrictedRoute path="/task-manager"><TaskManager user={user} /></RestrictedRoute>} />
             <Route
               path="courier-tracking"
               element={

@@ -1,0 +1,1032 @@
+%PDF-1.4
+%Antigravity
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R 5 0 R 6 0 R 7 0 R 8 0 R 9 0 R 10 0 R 11 0 R 12 0 R] /Count 10 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 19 0 R >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 20 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 21 0 R >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 22 0 R >>
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 23 0 R >>
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 24 0 R >>
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 25 0 R >>
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 26 0 R >>
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 27 0 R >>
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 13 0 R /F2 14 0 R /F3 15 0 R /F4 16 0 R /F5 17 0 R >> >> /Contents 28 0 R >>
+endobj
+13 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+14 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+15 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+16 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+17 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold /Encoding /WinAnsiEncoding >>
+endobj
+18 0 obj
+<< /Title (Lead Generation & Task Manager Mobile App - Complete REST API Documentation) /Author (Impression Mobile Engineering) /Subject (Complete Mobile REST API Reference with JSON Payloads & RBAC Matrix) /CreationDate (D:20261105120000) >>
+endobj
+19 0 obj
+<< /Length 3980 >>
+stream
+0.08 0.18 0.36 rg 36 828 523 6 re f
+
+BT /F2 16 Tf 0.08 0.18 0.36 rg 36 805 Td (LEAD GENERATION & TASK MANAGER MOBILE APP) Tj ET
+BT /F1 9.5 Tf 0.35 0.40 0.48 rg 36 790 Td (Complete REST API Reference, Integration Specifications & JSON Payloads) Tj ET
+
+0.96 0.97 0.99 rg 0.80 0.85 0.92 RG 0.75 w 36 720 523 58 re B
+BT /F2 8 Tf 0.15 0.25 0.45 rg 46 764 Td (TARGET CLIENTS:) Tj /F1 8 Tf 0.25 0.30 0.38 rg ( iOS 14+ & Android 10+ [React Native, Flutter, Swift, Kotlin]) Tj ET
+BT /F2 8 Tf 0.15 0.25 0.45 rg 46 748 Td (AUTHENTICATION:) Tj /F1 8 Tf 0.25 0.30 0.38 rg ( RFC 7519 JWT Bearer Tokens [HMAC-SHA256]) Tj ET
+BT /F2 8 Tf 0.15 0.25 0.45 rg 46 732 Td (BASE ENDPOINT:) Tj /F4 8 Tf 0.10 0.25 0.55 rg ( https://flux-india.co.in/api/ or http://<host>:8000/api/) Tj ET
+BT /F2 8 Tf 0.15 0.25 0.45 rg 340 764 Td (SPEC VERSION:) Tj /F1 8 Tf 0.25 0.30 0.38 rg ( 2.0 [Production Verified]) Tj ET
+BT /F2 8 Tf 0.15 0.25 0.45 rg 340 748 Td (DOCUMENT STATUS:) Tj /F2 8 Tf 0.08 0.52 0.26 rg ( Fully Implemented & Tested) Tj ET
+BT /F2 8 Tf 0.15 0.25 0.45 rg 340 732 Td (SECURITY TIER:) Tj /F1 8 Tf 0.25 0.30 0.38 rg ( Enterprise Role-Based Access [RBAC]) Tj ET
+
+0.08 0.18 0.36 rg 36 690 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 695 Td (EXECUTIVE SUMMARY & CORE MOBILE ARCHITECTURE) Tj ET
+
+0.98 0.99 1.0 rg 0.82 0.85 0.90 RG 0.5 w 36 572 523 110 re B
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 46 666 Td (1. Multi-User Lead Assignment Architecture:) Tj ET
+BT /F1 8 Tf 0.20 0.25 0.35 rg 46 654 Td (Leads are linked to sales representatives via the relational mapping table 'lead_assignments'. Multiple representatives) Tj ET
+BT /F1 8 Tf 0.20 0.25 0.35 rg 46 642 Td (can simultaneously manage and collaborate on the same client company without data overwriting.) Tj ET
+
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 46 626 Td (2. Independent Task & Interaction Histories:) Tj ET
+BT /F1 8 Tf 0.20 0.25 0.35 rg 46 614 Td (Each assigned user maintains their own independent 'LeadTask' instance and interaction log [Call, WhatsApp, Email].) Tj ET
+BT /F1 8 Tf 0.20 0.25 0.35 rg 46 602 Td (When one user is removed from a lead, it disappears from only that user's view while other assignees retain full access.) Tj ET
+
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 46 586 Td (3. Automated 24-Hour Follow-up Reminder Engine:) Tj ET
+BT /F1 8 Tf 0.20 0.25 0.35 rg 46 574 Td (The system automatically computes reminder_date = next_followup_date - 1 day, delivering timely alerts.) Tj ET
+
+0.08 0.18 0.36 rg 36 544 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 549 Td (REST API DIRECTORY & SECTION INDEX) Tj ET
+
+0.95 0.96 0.98 rg 0.82 0.85 0.90 RG 0.5 w 36 65 523 470 re B
+
+BT /F2 8 Tf 0.10 0.20 0.40 rg 46 520 Td (SECTION 1: AUTHENTICATION & SESSION MANAGEMENT - Page 2) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 508 Td (* POST /api/auth/token/ - Authenticate credentials and obtain JWT access & refresh token pair) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 496 Td (* POST /api/auth/token/refresh/ - Renew expired JWT access token without re-login) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 484 Td (* GET  /api/auth/me/ - Fetch authenticated user profile, companies, and permissions) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 472 Td (* POST /api/auth/logout/ - Invalidate session and revoke/blacklist refresh token) Tj ET
+
+BT /F2 8 Tf 0.10 0.20 0.40 rg 46 450 Td (SECTION 2: LEAD GENERATION & MANAGEMENT - Pages 3 - 4) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 438 Td (* GET    /api/leads/ - Paginated leads list with dynamic search, multi-filters, and segment counts) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 426 Td (* GET    /api/leads/filters/ - Dynamic filter options [cities, segments, categories, assignable users]) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 414 Td (* POST   /api/leads/ - Create new lead with auto-assignment and duplicate conflict checks) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 402 Td (* GET    /api/leads/{id}/ - Retrieve detailed lead profile, assigned team members, and audit history) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 390 Td (* PATCH  /api/leads/{id}/ - Partial update of contact information, notes, and assignees) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 378 Td (* DELETE /api/leads/{id}/ - Delete lead record and cascade linked assignments and tasks) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 366 Td (* POST   /api/leads/{id}/status/ - Quick status transition [Lead, HostLead, Converted, Unassigned]) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 354 Td (* POST   /api/leads/bulk-status/ - Batch status updates and mass assignment management) Tj ET
+
+BT /F2 8 Tf 0.10 0.20 0.40 rg 46 332 Td (SECTION 3: MULTIPLE-USER LEAD ASSIGNMENT & REMOVAL - Page 5) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 320 Td (* POST   /api/leads/assign/ - Bulk assign 1 or more leads to multiple users simultaneously) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 308 Td (* GET    /api/leads/{id}/assignments/ - List all representatives currently assigned to a lead) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 296 Td (* DELETE /api/leads/{id}/assignments/{uid}/ - Remove specific representative from lead assignment) Tj ET
+
+BT /F2 8 Tf 0.10 0.20 0.40 rg 46 274 Td (SECTION 4: TASK MANAGER [CRUD & STATUS] - Pages 6 - 7) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 262 Td (* GET    /api/tasks/ - View assigned tasks with status counts [All, Pending, Completed]) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 250 Td (* POST   /api/tasks/ - Create task manually for an assigned lead) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 238 Td (* GET    /api/tasks/{id}/ - Retrieve task details, client info, schedule dates, and notes) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 226 Td (* PATCH  /api/tasks/{id}/ - Update task description, assigned date, and next follow-up date) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 214 Td (* POST   /api/tasks/{id}/status/ - Toggle task status between Pending and Completed) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 202 Td (* DELETE /api/tasks/{id}/ - Soft delete task from active task list) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 190 Td (* GET    /api/tasks/available-leads/ - Fetch leads assigned to user available for task creation) Tj ET
+
+BT /F2 8 Tf 0.10 0.20 0.40 rg 46 168 Td (SECTION 5: LEAD COMMUNICATION & FOLLOW-UP - Page 8) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 156 Td (* POST   /api/tasks/{id}/calls/ - Record interaction [Call / WhatsApp / Email] and next follow-up) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 144 Td (* GET    /api/tasks/{id}/history/ - Retrieve chronological communication history for this task) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 132 Td (* GET    /api/leads/{id}/interactions/ - 360-degree aggregated interaction log across all assignees) Tj ET
+
+BT /F2 8 Tf 0.10 0.20 0.40 rg 46 110 Td (SECTION 6: REMINDERS & MOBILE PUSH TOKENS - Page 9) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 98 Td (* GET    /api/tasks/notifications/ - Pending follow-up reminders due today or overdue) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 86 Td (* POST   /api/notifications/device-token/ - Register mobile FCM/APNS push token) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 56 74 Td (* DELETE /api/notifications/device-token/ - Unregister mobile device push token on sign-out) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 1 of 10) Tj ET
+endstream
+endobj
+20 0 obj
+<< /Length 3950 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 440 824 Td (Section 1: Authentication) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (1. AUTHENTICATION & SESSION MANAGEMENT APIS [JWT & RBAC]) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 618 523 162 re B
+0.08 0.52 0.26 rg 42 760 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 764 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 764 Td (/api/auth/token/ -- User Login & Token Generation) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 460 764 Td ([Role: Public]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 748 Td (Purpose: Authenticates user credentials and returns JWT access and refresh token pair along with full user profile.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 737 Td (Headers: Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 656 226 70 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 716 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 704 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 693 Td ("username": "dhruvi_patel",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 682 Td ("password": "UserPass@123") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 671 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 276 656 277 70 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 280 716 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 280 704 Td ({ "access": "eyJhbGciOi...", "refresh": "eyJ...",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 286 693 Td ("token_type": "Bearer", "expires_in": 86400,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 286 682 Td ("user": { "id": 10, "username": "dhruvi_patel",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 292 671 Td ("full_name": "Dhruvi Patel", "role": "User" } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 642 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 401 Unauthorized: {"error": "Incorrect password."} | 400 Bad Request: {"error": "Missing credentials"}) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 630 Td (Notes: Store access token in secure mobile storage. Pass 'Authorization: Bearer <access_token>' for all protected endpoints.) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 468 523 140 re B
+0.08 0.52 0.26 rg 42 590 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 594 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 594 Td (/api/auth/token/refresh/ -- Renew Expired Access Token) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 440 594 Td ([Role: Public / Refresh]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 578 Td (Purpose: Issues a new JWT access token using a valid, non-blacklisted refresh token without requiring re-authentication.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 567 Td (Headers: Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 500 226 56 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 546 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 534 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 522 Td ("refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..." ) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 510 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 276 500 277 56 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 280 546 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 280 534 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 286 522 Td ("access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC...", ) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 286 510 Td ("token_type": "Bearer", "expires_in": 86400 ) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 280 498 Td (}) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 482 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 401 Unauthorized: {"error": "Invalid or expired refresh token."} | 400 Bad Request: missing token) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 308 523 150 re B
+0.10 0.35 0.70 rg 42 436 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 440 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 440 Td (/api/auth/me/ -- User Profile & RBAC Permissions) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 440 440 Td ([Role: Authenticated]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 424 Td (Purpose: Retrieves authenticated profile, active role, company memberships, and authorized capability flags.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 413 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 336 509 66 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 392 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 380 Td ({ "id": 10, "username": "dhruvi_patel", "first_name": "Dhruvi", "last_name": "Patel", "full_name": "Dhruvi Patel",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 368 Td ("email": "dhruvi@sky9.ai", "role": "User", "is_staff": false, "is_superuser": false,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 356 Td ("companies": [ { "id": 1, "name": "Impression Pharma", "location": "Ahmedabad" } ], "company_ids": [1],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 344 Td ("permissions": [ "task.manage", "lead.view_assigned", "communication.record" ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 320 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 401 Unauthorized: {"error": "Authentication credentials were not provided or token expired."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 170 523 128 re B
+0.08 0.52 0.26 rg 42 278 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 282 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 282 Td (/api/auth/logout/ -- User Logout & Token Revocation) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 440 282 Td ([Role: Authenticated]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 266 Td (Purpose: Signs out user, invalidates active sessions, and blacklists refresh token in the backend database.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 255 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 200 226 44 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 234 Td (OPTIONAL REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 222 Td ({ "refresh": "eyJhbGciOiJIUzI1NiIsInR5c..." }) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 276 200 277 44 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 280 234 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 280 222 Td ({ "message": "Logged out successfully." }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 182 Td (Security Policy:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Token JTI is recorded in 'blacklisted_refresh_tokens'. Further refresh attempts will return HTTP 401.) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 2 of 10) Tj ET
+endstream
+endobj
+21 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 420 824 Td (Section 2: Lead Generation Part 1) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (2. LEAD GENERATION & MANAGEMENT APIS -- PART 1) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 626 523 154 re B
+0.10 0.35 0.70 rg 42 762 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 766 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 766 Td (/api/leads/ -- List Leads with Search, Filters & Counts) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 766 Td ([Admin: All | User: Assigned]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 750 Td (Purpose: Returns paginated leads with real-time multi-filtering [status, city, segment, assignee] & status counts.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 739 Td (Headers: Authorization: Bearer <access_token> | Query: ?status=Lead&city=Ahmedabad&search=Apex&page=1) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 656 509 72 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 718 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 706 Td ({ "total_leads": 4, "current_page": 1, "total_pages": 1, "counts": { "all": 4, "lead": 2, "hostlead": 1, "converted": 1 },) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 694 Td ("results": [ { "id": 1, "company_name": "Apex Healthcare Ltd", "contact_person": "Raj Shah", "phone": "9876543210",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 682 Td ("city": "Ahmedabad", "status": "Lead", "assigned_to_name": "Dhruvi Patel, Juhi Vanjara",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 670 Td ("assigned_user_ids": [10, 11], "created_at": "2026-11-04T10:30:00Z" } ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 638 Td (RBAC Enforcement:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Regular users [e.g. Dhruvi] only receive leads where their user ID is in 'assigned_user_ids'.) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 486 523 132 re B
+0.10 0.35 0.70 rg 42 600 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 604 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 604 Td (/api/leads/filters/ -- Filter Options & Segment Breakdown) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 440 604 Td ([Role: Authenticated]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 588 Td (Purpose: Returns active cities, segments with dynamic lead counts, and assignable users for filter dropdowns.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 577 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 514 509 52 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 556 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 544 Td ({ "cities": ["Ahmedabad", "Bangalore", "Mumbai"], "statuses": ["Lead", "HostLead", "Converted"],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 532 Td ("segments": [ {"name": "Pharma", "count": 12}, {"name": "Hospital", "count": 5} ],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 520 Td ("assignable_users": [ {"id": 10, "username": "dhruvi", "name": "Dhruvi Patel", "role": "User", "count": 4} ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 498 Td (Mobile UI Usage:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Powers top horizontal chip filters and dropdown selectors on the Lead Generation screen.) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 312 523 166 re B
+0.08 0.52 0.26 rg 42 460 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 464 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 464 Td (/api/leads/ -- Create New Lead with Auto-Assignment) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 440 464 Td ([Role: Admin / Super]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 448 Td (Purpose: Creates lead. Auto-preselects current user if unassigned. Checks duplicate phone/email and creates initial task.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 437 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 348 236 80 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 418 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 406 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 395 Td ("company_name": "Apex Healthcare Ltd",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 384 Td ("first_name": "Raj", "last_name": "Shah",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 373 Td ("phone": "9876543210", "city": "Ahmedabad",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 362 Td ("assigned_to": [10, 11], "notes": "New lead") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 351 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 348 267 80 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 418 Td (SUCCESS RESPONSE [201 CREATED]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 406 Td ({ "message": "Lead created successfully.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 395 Td ("lead": { "id": 1, "company_name": "Apex...",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 384 Td ("assigned_user_ids": [10, 11],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 373 Td ("status": "Lead", "created_at": "2026..." } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 332 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "Company name or contact person name is required."} | 409 Conflict: Duplicate phone) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 150 523 154 re B
+0.10 0.35 0.70 rg 42 286 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 290 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 290 Td (/api/leads/{id}/ -- Complete Lead Profile & Assignees) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 290 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 274 Td (Purpose: Retrieves complete lead record with full assignment history, status audit trail, and assigned representatives.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 263 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 186 509 68 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 244 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 232 Td ({ "lead": { "id": 1, "company_name": "Apex Healthcare Ltd", "first_name": "Raj", "last_name": "Shah",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 220 Td ("email": "raj@apexhealth.com", "phone": "9876543210", "city": "Ahmedabad", "status": "Lead",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 208 Td ("assigned_users": [ {"id": 10, "name": "Dhruvi Patel"}, {"id": 11, "name": "Juhi Vanjara"} ],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 196 Td ("assignment_history": [ {"assigned_to_name": "Dhruvi Patel", "assigned_at": "2026-11-04T10:30:00Z"} ] } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 170 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Lead not found or access denied."} | 403 Forbidden: Insufficient permissions) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 3 of 10) Tj ET
+endstream
+endobj
+22 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 420 824 Td (Section 2: Lead Generation Part 2) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (2. LEAD GENERATION & MANAGEMENT APIS -- PART 2) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 626 523 154 re B
+0.78 0.45 0.08 rg 42 762 42 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 766 Td (PATCH) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 90 766 Td (/api/leads/{id}/ -- Update Lead Information & Assignees) Tj ET
+BT /F2 7.5 Tf 0.78 0.45 0.08 rg 410 766 Td ([Admin: Full | User: Notes]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 750 Td (Purpose: Updates lead fields. Allows adding/removing assigned users via 'assigned_to'. Automatically adjusts tasks.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 739 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 662 236 68 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 720 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 708 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 697 Td ("assigned_to": [10, 11, 1],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 686 Td ("notes": "Added Tech Admin as co-assignee",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 675 Td ("segment": "Hospital & Diagnostics") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 664 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 662 267 68 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 720 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 708 Td ({ "message": "Lead updated successfully.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 697 Td ("lead": { "id": 1, "company_name": "Apex...",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 686 Td ("assigned_user_ids": [10, 11, 1],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 675 Td ("notes": "Added Tech Admin as co-assignee" } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 646 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Lead not found."} | 403 Forbidden: {"error": "Unauthorized modification."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 502 523 116 re B
+0.78 0.15 0.15 rg 42 602 46 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 606 Td (DELETE) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 94 606 Td (/api/leads/{id}/ -- Permanently Delete Lead Record) Tj ET
+BT /F2 7.5 Tf 0.78 0.15 0.15 rg 440 606 Td ([Role: Admin / Super]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 590 Td (Purpose: Deletes lead record and cascades related lead assignments and tasks cleanly from the database.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 579 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 532 509 38 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 558 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 544 Td ({ "message": "Lead deleted successfully." }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 516 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 403 Forbidden: {"error": "Only Admins and Superadmins can delete leads."} | 404 Not Found) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 332 523 162 re B
+0.08 0.52 0.26 rg 42 478 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 482 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 482 Td (/api/leads/{id}/status/ -- Quick Status Transition) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 482 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 466 Td (Purpose: Updates status: Lead, HostLead, Converted, or Unassigned. Unassigning safely removes assignments.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 455 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 380 236 66 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 436 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 424 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 413 Td ("status": "Converted",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 402 Td ("status_notes": "Contract finalized.") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 391 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 380 267 66 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 436 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 424 Td ({ "message": "Lead status updated to Converted.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 413 Td ("lead": { "id": 1, "status": "Converted",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 402 Td ("status_updated_at": "2026-11-05T12:00:00Z" } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 364 Td (Special Behavior:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( If 'Unassigned' is passed, deletes 'lead_assignments' and marks tasks as deleted [Admin only].) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 352 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "Invalid status value."} | 403 Forbidden: {"error": "Permission denied."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 156 523 168 re B
+0.08 0.52 0.26 rg 42 308 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 312 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 312 Td (/api/leads/bulk-status/ -- Batch Status & Mass Assignment Update) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 440 312 Td ([Role: Admin / Super]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 296 Td (Purpose: Batch update status or unassigns multiple selected leads simultaneously with audit notes.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 285 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 200 236 76 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 266 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 254 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 243 Td ("lead_ids": [1, 2, 3],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 232 Td ("status": "HostLead",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 221 Td ("notes": "Bulk moved to HostLead campaign") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 210 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 200 267 76 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 266 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 254 Td ({ "message": "Successfully updated status for 3 leads",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 243 Td ("updated_count": 3, "failed_count": 0 ) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 232 Td (}) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 182 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "lead_ids must be a non-empty list."} | 403 Forbidden: Permission denied) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 4 of 10) Tj ET
+endstream
+endobj
+23 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 400 824 Td (Section 3: Multi-User Assignment) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (3. MULTIPLE-USER LEAD ASSIGNMENT & REMOVAL APIS) Tj ET
+
+0.98 0.99 1.0 rg 0.75 0.82 0.92 RG 0.75 w 36 718 523 64 re B
+BT /F2 8 Tf 0.10 0.20 0.40 rg 44 768 Td (ARCHITECTURE: RELATIONAL MANY-TO-MANY [M2M] ASSIGNMENT MODEL) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 756 Td (* All assignments are stored in the relational database table 'lead_assignments' [lead_id, user_id, assigned_by, assigned_at].) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 744 Td (* No comma-separated username strings are used. Each assigned representative receives an independent 'LeadTask' instance.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 732 Td (* When user A logs notes or sets a follow-up, it is completely isolated and NEVER overwrites user B's records.) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 538 523 172 re B
+0.08 0.52 0.26 rg 42 690 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 694 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 694 Td (/api/leads/assign/ -- Multiple-User Lead Assignment) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 440 694 Td ([Role: Admin / Super]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 678 Td (Purpose: Assigns 1 or more leads to multiple users simultaneously. Automatically provisions independent tasks per user.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 667 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 580 236 78 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 646 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 634 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 623 Td ("lead_ids": [1],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 612 Td ("assigned_to": [10, 11, 1],) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 601 Td ("notes": "Co-assignment: Dhruvi, Juhi, Admin") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 590 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 580 267 78 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 646 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 634 Td ({ "message": "Successfully updated assignment) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 623 Td ("for 1 leads to Dhruvi Patel, Juhi Vanjara,",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 612 Td ("Tech Admin.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 601 Td ("updated_count": 1 } ) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 564 Td (Audit Trail:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Creates 'lead_assignment_history' records capturing previous assignee and assignment actor timestamps.) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 552 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "No valid leads selected."} | 403 Forbidden: {"error": "Permission denied."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 376 523 154 re B
+0.10 0.35 0.70 rg 42 510 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 514 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 514 Td (/api/leads/{id}/assignments/ -- List Active Assigned Representatives) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 514 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 498 Td (Purpose: Returns full list of all active users assigned to this lead, with assigned_by and assigned_at timestamps.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 487 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 410 509 68 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 466 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 454 Td ({ "lead_id": 1, "company_name": "Apex Healthcare Ltd", "total_assigned": 2,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 442 Td ("assignments": [) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 430 Td ({ "user_id": 10, "username": "dhruvi", "name": "Dhruvi Patel", "assigned_by_name": "Tech Admin", "assigned_at": "2026-11-04T10:30:00Z" },) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 418 Td ({ "user_id": 11, "username": "juhi", "name": "Juhi Vanjara", "assigned_by_name": "Tech Admin", "assigned_at": "2026-11-04T10:30:00Z" } ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 394 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Lead not found or access denied."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 210 523 158 re B
+0.78 0.15 0.15 rg 42 348 46 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 352 Td (DELETE) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 94 352 Td (/api/leads/{id}/assignments/{uid}/ -- Remove User Assignment) Tj ET
+BT /F2 7.5 Tf 0.78 0.15 0.15 rg 440 352 Td ([Role: Admin / Super]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 336 Td (Purpose: Removes specific representative from lead. Lead disappears from only that user's Task Manager.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 325 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 250 509 66 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 304 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 292 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 280 Td ("message": "User Juhi Vanjara removed from lead assignment successfully.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 268 Td ("lead_id": 1, "removed_user_id": 11, "remaining_assigned_count": 1) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 256 Td (}) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 234 Td (Data Integrity:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Dhruvi Patel retains full access. Juhi's personal Task is soft-deleted [is_deleted=True].) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 222 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "User is not assigned to this lead."} | 403 Forbidden: {"error": "Permission denied."}) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 5 of 10) Tj ET
+endstream
+endobj
+24 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 420 824 Td (Section 4: Task Manager Part 1) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (4. TASK MANAGER APIS [CRUD & STATUS] -- PART 1) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 626 523 154 re B
+0.10 0.35 0.70 rg 42 762 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 766 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 766 Td (/api/tasks/ -- List Tasks with Status Counts & Auto-Sync) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 766 Td ([User: Own Tasks | Admin: All]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 750 Td (Purpose: Lists active tasks with dynamic status counts [All, Pending, Completed]. Auto-syncs assigned leads.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 739 Td (Headers: Authorization: Bearer <access_token> | Query: ?status=Pending&search=Apex) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 656 509 72 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 718 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 706 Td ({ "counts": { "all": 10, "pending": 7, "completed": 3 },) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 694 Td ("tasks": [ { "id": 101, "lead_id": 1, "company_name": "Apex Healthcare Ltd", "contact_person": "Raj Shah",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 682 Td ("phone": "9876543210", "city": "Ahmedabad", "description": "Follow up regarding quotation",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 670 Td ("assigned_date": "2026-11-04", "next_followup_date": "2026-11-10", "reminder_date": "2026-11-09",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 658 Td ("status": "Pending", "is_due_today": false, "is_overdue": false, "call_count": 2 } ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 638 Td (Auto-Sync Rule:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Ensures every lead assigned to the user automatically has an active task in their Task Manager.) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 458 523 160 re B
+0.08 0.52 0.26 rg 42 600 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 604 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 604 Td (/api/tasks/ -- Create Task Manually for Assigned Lead) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 604 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 588 Td (Purpose: Creates task for an assigned lead. Calculates reminder_date automatically [1 day prior to follow-up].) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 577 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 496 236 72 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 558 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 546 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 535 Td ("lead_id": 1,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 524 Td ("description": "Product demo meeting scheduled",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 513 Td ("next_followup_date": "2026-11-10",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 502 Td ("future_discussion": "Demonstrate scanner") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 491 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 496 267 72 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 558 Td (SUCCESS RESPONSE [201 CREATED]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 546 Td ({ "message": "Task created successfully.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 535 Td ("task": { "id": 102, "lead_id": 1,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 524 Td ("company_name": "Apex Healthcare Ltd",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 513 Td ("next_followup_date": "2026-11-10",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 502 Td ("reminder_date": "2026-11-09", "status": "Pending" } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 480 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "A pending task already exists."} | 403 Forbidden: {"error": "Lead not assigned."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 304 523 146 re B
+0.10 0.35 0.70 rg 42 436 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 440 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 440 Td (/api/tasks/{id}/ -- Task Details & Follow-up History) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 440 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 424 Td (Purpose: Retrieves full task details, contact details, scheduled reminder dates, and past call/discussion history.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 413 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 336 509 68 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 394 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 382 Td ({ "task": { "id": 101, "lead_id": 1, "company_name": "Apex Healthcare Ltd", "contact_person": "Raj Shah",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 370 Td ("phone": "9876543210", "description": "Follow up regarding quotation", "status": "Pending",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 358 Td ("next_followup_date": "2026-11-10", "reminder_date": "2026-11-09", "future_discussion": "Confirm order quantity",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 346 Td ("call_history": [ { "id": 201, "interaction_type": "Call", "discussion": "Discussed initial quote", "user_name": "Dhruvi Patel" } ] } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 320 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Task not found or access denied."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 150 523 146 re B
+0.78 0.45 0.08 rg 42 282 42 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 286 Td (PATCH) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 90 286 Td (/api/tasks/{id}/ -- Update Task Schedule & Discussion Notes) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 286 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 270 Td (Purpose: Edits task description, assigned date, next follow-up date, and future discussion agenda notes.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 259 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 186 236 64 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 240 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 228 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 217 Td ("description": "Updated agenda notes",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 206 Td ("next_followup_date": "2026-11-12",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 195 Td ("future_discussion": "Review sample pack") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 184 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 186 267 64 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 240 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 228 Td ({ "message": "Task updated successfully.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 217 Td ("task": { "id": 101, "next_followup_date": "2026-11-12",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 206 Td ("reminder_date": "2026-11-11",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 195 Td ("future_discussion": "Review sample pack" } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 170 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Task not found."} | 400 Bad Request: Invalid date format) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 6 of 10) Tj ET
+endstream
+endobj
+25 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 420 824 Td (Section 4: Task Manager Part 2) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (4. TASK MANAGER APIS [CRUD & STATUS] -- PART 2) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 626 523 154 re B
+0.08 0.52 0.26 rg 42 762 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 766 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 766 Td (/api/tasks/{id}/status/ -- Toggle / Set Task Status) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 766 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 750 Td (Purpose: Toggles or sets task status [Pending <-> Completed]. Completed tasks record timestamp & exit active reminders.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 739 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 662 236 68 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 720 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 708 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 697 Td ("status": "Completed") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 686 Td (}) Tj ET
+BT /F1 6.5 Tf 0.40 0.45 0.55 rg 48 672 Td (Note: If 'status' is omitted, toggles automatically.) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 662 267 68 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 720 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 708 Td ({ "message": "Task marked as Completed.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 697 Td ("task": { "id": 101, "status": "Completed",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 686 Td ("completed_at": "2026-11-05T12:45:00Z" } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 646 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "Invalid status. Must be 'Pending' or 'Completed'."} | 404 Not Found) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 502 523 116 re B
+0.78 0.15 0.15 rg 42 602 46 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 606 Td (DELETE) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 94 606 Td (/api/tasks/{id}/ -- Soft Delete Task from Active Manager) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 606 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 590 Td (Purpose: Soft-deletes task [is_deleted=True]. Preserves client contact details and complete communication history.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 579 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 532 509 38 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 558 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 544 Td ({ "message": "Task deleted successfully." }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 516 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Task not found or access denied."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 332 523 162 re B
+0.10 0.35 0.70 rg 42 478 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 482 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 482 Td (/api/tasks/available-leads/ -- Available Assigned Leads for Task) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 440 482 Td ([Role: Authenticated]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 466 Td (Purpose: Returns leads assigned to the user without an active pending task, enabling one-tap creation from mobile drawer.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 455 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 380 509 66 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 436 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 424 Td ({ "available_leads": [) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 413 Td ({ "id": 2, "company_name": "Ss Technologies", "contact_person": "Vikas Patel", "phone": "9742242394",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 402 Td ("email": "sstech@gmail.com", "city": "Bangalore", "display_name": "Ss Technologies - Vikas Patel" } ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 364 Td (Mobile Integration:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Populates the lead selection bottom-sheet when the representative taps the floating [+] action button.) Tj ET
+
+0.98 0.99 1.0 rg 0.75 0.82 0.92 RG 0.75 w 36 170 523 154 re B
+BT /F2 8 Tf 0.10 0.20 0.40 rg 44 310 Td (DATA INTEGRITY & TASK ISOLATION FOR MULTI-ASSIGNED LEADS) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 296 Td (* When a lead is assigned to 3 users [Dhruvi, Juhi, Tech Admin], 3 separate records exist in the 'lead_tasks' table.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 284 Td (* Dhruvi can mark her task as Completed without impacting Juhi's pending follow-up.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 272 Td (* Follow-up dates and discussion agendas are isolated per user; each user sees only their own follow-up date.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 260 Td (* If a user is unassigned via DELETE /api/leads/{id}/assignments/{uid}/, their task is soft-deleted [is_deleted=True].) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 248 Td (* If the user is re-assigned later, the existing task is seamlessly reactivated with full previous history intact.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 236 Td (* Admins can filter GET /api/tasks/?user_id={id} to inspect any representative's active pipeline.) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 7 of 10) Tj ET
+endstream
+endobj
+26 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 380 824 Td (Section 5: Communication & Follow-up) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (5. LEAD COMMUNICATION & FOLLOW-UP APIS [CALL, WHATSAPP, EMAIL]) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 580 523 200 re B
+0.08 0.52 0.26 rg 42 764 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 768 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 768 Td (/api/tasks/{id}/calls/ -- Record New Interaction & Schedule Follow-up) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 768 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 752 Td (Purpose: Records Phone Call, WhatsApp, or Email notes. Updates task schedule and automatically computes reminder_date.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 741 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 646 236 86 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 722 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 710 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 699 Td ("interaction_type": "WhatsApp",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 688 Td ("interaction_date": "2026-11-05",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 677 Td ("communication_notes": "Sent product deck",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 666 Td ("next_followup_date": "2026-11-10",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 655 Td ("next_followup_notes": "Call for feedback") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 644 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 646 267 86 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 722 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 710 Td ({ "message": "WhatsApp interaction recorded",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 699 Td ("task": { "id": 101, "lead_id": 1,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 688 Td ("next_followup_date": "2026-11-10",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 677 Td ("reminder_date": "2026-11-09",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 302 666 Td ("future_discussion": "Call for feedback" } }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 630 Td (Historical Preservation:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Never overwrites prior interactions; inserts a new chronological 'TaskCallHistory' entry.) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 618 Td (Supported Channels:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 'Call', 'WhatsApp', 'Email' [case-insensitive with automatic normalization].) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 606 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "Communication notes are required."} | 404 Not Found) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 390 523 182 re B
+0.10 0.35 0.70 rg 42 556 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 560 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 560 Td (/api/tasks/{id}/history/ -- Task-Specific Communication History) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 560 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 544 Td (Purpose: Complete chronological interaction log for this representative's task, notes, channels, and follow-up dates.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 533 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 430 509 96 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 516 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 504 Td ({ "task_id": 101, "lead_id": 1, "company_name": "Apex Healthcare Ltd", "count": 2,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 492 Td ("history": [) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 480 Td ({ "id": 202, "interaction_type": "WhatsApp", "interaction_date": "2026-11-05",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 60 468 Td ("communication_notes": "Sent product deck", "next_followup_date": "2026-11-10", "user_name": "Dhruvi Patel" },) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 456 Td ({ "id": 201, "interaction_type": "Call", "interaction_date": "2026-11-04",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 60 444 Td ("communication_notes": "Initial discussion", "next_followup_date": "2026-11-05", "user_name": "Dhruvi Patel" } ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 414 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Task not found or access denied."}) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 402 Td (Mobile UI Usage: Displays under the 'PREVIOUS INTERACTION HISTORY' collapsible timeline.) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 200 523 182 re B
+0.10 0.35 0.70 rg 42 366 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 370 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 370 Td (/api/leads/{id}/interactions/ -- Lead 360-Degree Team Interaction Log) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 370 Td ([Assigned User / Admin]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 354 Td (Purpose: Aggregates all communication history across ALL assigned team members for full 360 client visibility.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 343 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 240 509 96 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 326 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 314 Td ({ "lead_id": 1, "company_name": "Apex Healthcare Ltd", "contact_person": "Raj Shah", "total_interactions": 2,) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 302 Td ("interactions": [) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 290 Td ({ "id": 202, "task_id": 101, "interaction_type": "WhatsApp", "communication_notes": "Sent product deck",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 60 278 Td ("user_name": "Dhruvi Patel", "user_role": "User", "call_date": "2026-11-05" },) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 266 Td ({ "id": 203, "task_id": 103, "interaction_type": "Email", "communication_notes": "Sent formal quote with NDA",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 60 254 Td ("user_name": "Juhi Vanjara", "user_role": "User", "call_date": "2026-11-05" } ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 224 Td (Cross-Team Value:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Prevents duplicate communications. Rep A can see what Rep B discussed before calling.) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 212 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 404 Not Found: {"error": "Lead not found or access denied."}) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 8 of 10) Tj ET
+endstream
+endobj
+27 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 400 824 Td (Section 6: Reminders & Push) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (6. REMINDERS & MOBILE PUSH NOTIFICATIONS APIS) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 616 523 164 re B
+0.10 0.35 0.70 rg 42 762 34 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 48 766 Td (GET) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 82 766 Td (/api/tasks/notifications/ -- In-App Follow-up Reminders & Due Today) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 766 Td ([User: Own | Admin: Team]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 750 Td (Purpose: Returns pending tasks where reminder_date <= today [1 day prior to follow-up]. Flags is_due_today & is_overdue.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 739 Td (Headers: Authorization: Bearer <access_token>) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 656 509 76 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 48 722 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 710 Td ({ "count": 1, "notifications": [) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 52 698 Td ({ "id": "rem-101", "task_id": 101, "lead_id": 1, "company_name": "Apex Healthcare Ltd",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 686 Td ("contact_person": "Raj Shah", "phone": "9876543210", "email": "raj@apexhealth.com",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 674 Td ("next_followup_date": "2026-11-06", "reminder_date": "2026-11-05",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 662 Td ("future_discussion": "Follow up on contract", "is_due_today": false, "is_overdue": false } ] }) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 642 Td (Mobile UI Banner:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Drives the top header bell notification counter and dismissable alert badges.) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 630 Td (Exclusion Filter:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( Tasks marked 'Completed' or deleted are automatically excluded from reminders.) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 456 523 152 re B
+0.08 0.52 0.26 rg 42 590 38 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 594 Td (POST) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 86 594 Td (/api/notifications/device-token/ -- Register Mobile Push Token) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 440 594 Td ([Role: Authenticated]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 578 Td (Purpose: Binds mobile FCM [Android] or APNS [iOS] device token to user account for background push notifications.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 567 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 500 236 60 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 550 Td (REQUEST BODY [JSON]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 538 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 526 Td ("token": "fcm_e4k8Lm9_device_token_sample",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 514 Td ("platform": "android") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 502 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 500 267 60 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 550 Td (SUCCESS RESPONSE [201 CREATED]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 538 Td ({ "message": "Device token registered successfully.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 526 Td ("id": 1, "platform": "android",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 514 Td ("created": true } ) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 484 Td (Platforms Supported:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 'android' [Firebase Cloud Messaging], 'ios' [Apple Push Notification Service].) Tj ET
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 472 Td (Error Responses:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( 400 Bad Request: {"error": "Device token is required."}) Tj ET
+
+0.96 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 296 523 150 re B
+0.78 0.15 0.15 rg 42 428 46 14 re f
+BT /F2 7.5 Tf 1 1 1 rg 46 432 Td (DELETE) Tj ET
+BT /F2 8.5 Tf 0.10 0.20 0.40 rg 94 432 Td (/api/notifications/device-token/ -- Unregister Push Token on Logout) Tj ET
+BT /F2 7.5 Tf 0.10 0.35 0.70 rg 410 432 Td ([Role: Authenticated]) Tj ET
+
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 416 Td (Purpose: Unbinds mobile push token on sign-out to prevent notifications from appearing on shared devices.) Tj ET
+BT /F1 7.5 Tf 0.30 0.35 0.45 rg 44 405 Td (Headers: Authorization: Bearer <access_token> | Content-Type: application/json) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 44 340 236 58 re B
+BT /F2 7 Tf 0.15 0.25 0.45 rg 48 388 Td (REQUEST BODY [OPTIONAL]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 376 Td ({) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 56 364 Td ("token": "fcm_e4k8Lm9_device_token_sample") Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 48 352 Td (}) Tj ET
+
+0.92 0.94 0.96 rg 0.80 0.84 0.88 RG 0.5 w 286 340 267 58 re B
+BT /F2 7 Tf 0.08 0.52 0.26 rg 290 388 Td (SUCCESS RESPONSE [200 OK]:) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 290 376 Td ({ "message": "Device token unregistered successfully.",) Tj ET
+BT /F4 6.5 Tf 0.15 0.20 0.30 rg 296 364 Td ("unregistered_count": 1 } ) Tj ET
+
+BT /F2 7 Tf 0.65 0.15 0.15 rg 44 324 Td (Security Policy:) Tj /F1 7 Tf 0.20 0.25 0.35 rg ( If token is omitted, unregisters all active tokens for this user upon signing out.) Tj ET
+
+0.98 0.99 1.0 rg 0.75 0.82 0.92 RG 0.75 w 36 120 523 166 re B
+BT /F2 8 Tf 0.10 0.20 0.40 rg 44 274 Td (24-HOUR FOLLOW-UP REMINDER TIMELINE ALGORITHM) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 260 Td (* Formula: reminder_date = next_followup_date - timedelta[days=1]) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 248 Td (* Example Scenario: An interaction is logged on 31 Oct with next follow-up on 5 Nov -> reminder_date = 4 Nov.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 236 Td (* Trigger Window: On 4 Nov at 00:00:00 IST, the task enters 'is_reminder_active = True' status.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 224 Td (* In-App Alert: Representative sees top header notification badge with urgent client company and phone number.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 212 Td (* Push Delivery: Cloud server sends background push notification 24 hours prior to meeting.) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 44 200 Td (* Dismissal Condition: When representative marks task Completed or logs a new interaction, reminder is cleared.) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 515 36 Td (Page 9 of 10) Tj ET
+endstream
+endobj
+28 0 obj
+<< /Length 3980 >>
+stream
+0.82 0.85 0.90 RG 0.5 w 36 820 m 559 820 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 824 Td (Lead Generation & Task Manager Mobile App -- Detailed REST API Documentation) Tj ET
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 430 824 Td (Section 7 & 8: RBAC & Guidelines) Tj ET
+
+0.08 0.18 0.36 rg 36 788 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 793 Td (7. ROLE-BASED ACCESS CONTROL [RBAC] PERMISSIONS MATRIX) Tj ET
+
+0.92 0.94 0.97 rg 0.82 0.85 0.90 RG 0.5 w 36 752 523 18 re B
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 44 757 Td (OPERATIONAL CAPABILITY) Tj ET
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 230 757 Td (SUPER ADMIN / TECH ADMIN) Tj ET
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 360 757 Td (ADMIN [COMPANY]) Tj ET
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 470 757 Td (SALES EXECUTIVE) Tj ET
+
+1 1 1 rg 0.82 0.85 0.90 RG 0.5 w 36 734 523 18 re B
+BT /F1 7.5 Tf 0.15 0.20 0.30 rg 44 739 Td (View All Leads in Organization) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 230 739 Td (YES [All]) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 360 739 Td (YES [Company Scope]) Tj ET
+BT /F2 7.5 Tf 0.78 0.15 0.15 rg 470 739 Td (NO [Assigned Only]) Tj ET
+
+0.97 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 716 523 18 re B
+BT /F1 7.5 Tf 0.15 0.20 0.30 rg 44 721 Td (Assign / Reassign Multiple Users) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 230 721 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 360 721 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.78 0.15 0.15 rg 470 721 Td (NO) Tj ET
+
+1 1 1 rg 0.82 0.85 0.90 RG 0.5 w 36 698 523 18 re B
+BT /F1 7.5 Tf 0.15 0.20 0.30 rg 44 703 Td (Create New Leads Manually) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 230 703 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 360 703 Td (YES) Tj ET
+BT /F1 7.5 Tf 0.35 0.40 0.50 rg 470 703 Td (View / Auto-Assign) Tj ET
+
+0.97 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 680 523 18 re B
+BT /F1 7.5 Tf 0.15 0.20 0.30 rg 44 685 Td (Delete Leads Permanently) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 230 685 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 360 685 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.78 0.15 0.15 rg 470 685 Td (NO) Tj ET
+
+1 1 1 rg 0.82 0.85 0.90 RG 0.5 w 36 662 523 18 re B
+BT /F1 7.5 Tf 0.15 0.20 0.30 rg 44 667 Td (Manage Own Task Manager & Status) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 230 667 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 360 667 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 470 667 Td (YES [Independent]) Tj ET
+
+0.97 0.98 0.99 rg 0.82 0.85 0.90 RG 0.5 w 36 644 523 18 re B
+BT /F1 7.5 Tf 0.15 0.20 0.30 rg 44 649 Td (Record Interactions [Call/WA/Email]) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 230 649 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 360 649 Td (YES) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 470 649 Td (YES [Isolated Notes]) Tj ET
+
+1 1 1 rg 0.82 0.85 0.90 RG 0.5 w 36 626 523 18 re B
+BT /F1 7.5 Tf 0.15 0.20 0.30 rg 44 631 Td (Receive Due / Overdue Reminders) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 230 631 Td (YES [Organization]) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 360 631 Td (YES [Company]) Tj ET
+BT /F2 7.5 Tf 0.08 0.52 0.26 rg 470 631 Td (YES [Own Tasks Only]) Tj ET
+
+0.08 0.18 0.36 rg 36 596 523 18 re f
+BT /F2 8.5 Tf 1 1 1 rg 44 601 Td (8. MOBILE APPLICATION INTEGRATION & ARCHITECTURE GUIDELINES) Tj ET
+
+0.96 0.98 0.99 rg 0.80 0.85 0.92 RG 0.5 w 36 490 255 96 re B
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 44 572 Td (1. JWT AUTHENTICATION HEADER) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 558 Td (* Header: Authorization: Bearer <access_token>) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 546 Td (* Include header in every authorized mobile request.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 534 Td (* On HTTP 401, call /api/auth/token/refresh/.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 522 Td (* If refresh fails, route user back to Login screen.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 510 Td (* Secure tokens in OS Keychain or EncryptedPrefs.) Tj ET
+
+0.96 0.98 0.99 rg 0.80 0.85 0.92 RG 0.5 w 304 490 255 96 re B
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 312 572 Td (2. MULTI-USER ASSIGNMENT MODEL) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 558 Td (* Leads link to users via lead_assignments table.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 546 Td (* Multiple reps see the same lead simultaneously.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 534 Td (* Each rep maintains an independent LeadTask.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 522 Td (* Rep follow-up notes NEVER overwrite other reps.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 510 Td (* Unassigning rep removes lead from ONLY that rep.) Tj ET
+
+0.96 0.98 0.99 rg 0.80 0.85 0.92 RG 0.5 w 36 384 255 96 re B
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 44 466 Td (3. ACTION LINKS & DEEP LINKING) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 452 Td (* Direct Phone: tel:<phone> launches native dialer.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 440 Td (* WhatsApp: wa.me/<num>?text=Hello%20<name>) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 428 Td (* Email: mailto:<email>?subject=Follow-up...) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 416 Td (* Mobile app can launch communication apps directly.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 44 404 Td (* Automatically prompts rep to log notes afterward.) Tj ET
+
+0.96 0.98 0.99 rg 0.80 0.85 0.92 RG 0.5 w 304 384 255 96 re B
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 312 466 Td (4. STATUS CODES & ERROR RESPONSES) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 452 Td (* 200 OK / 201 Created: Standard JSON payload.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 440 Td (* 400 Bad Request: Validation error details.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 428 Td (* 401 Unauthorized: Invalid or expired token.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 416 Td (* 403 Forbidden: Insufficient role permissions.) Tj ET
+BT /F1 7 Tf 0.20 0.25 0.35 rg 312 404 Td (* 409 Conflict: Duplicate phone or email exists.) Tj ET
+
+0.96 0.98 0.99 rg 0.75 0.82 0.92 RG 0.75 w 36 280 523 94 re B
+BT /F2 8.5 Tf 0.08 0.52 0.26 rg 46 358 Td (DOCUMENT STATUS: APPROVED FOR PRODUCTION MOBILE IMPLEMENTATION) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 46 344 Td (BACKEND ENGINE: Django 5.x / Django REST Framework / MySQL Relational Engine) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 46 330 Td (MOBILE PLATFORMS: iOS 14+ / Android 10+ [React Native / Flutter Cross-Platform]) Tj ET
+BT /F1 7.5 Tf 0.20 0.25 0.35 rg 46 316 Td (SECURITY & COMPLIANCE: Encrypted Token Storage, Role-Based Access Control [RBAC], Audit Trails) Tj ET
+BT /F2 7.5 Tf 0.10 0.20 0.40 rg 46 300 Td (VERIFICATION: 100% verified against Impression CRM backend, automated test suite, and database models.) Tj ET
+
+0.82 0.85 0.90 RG 0.5 w 36 50 m 559 50 l S
+BT /F1 7.5 Tf 0.45 0.50 0.58 rg 36 36 Td (Impression CRM Mobile Architecture - Detailed REST API Documentation) Tj ET
+BT /F2 8 Tf 0.15 0.35 0.70 rg 510 36 Td (Page 10 of 10) Tj ET
+endstream
+endobj
+xref
+0 29
+0000000000 65535 f 
+0000000022 00000 n 
+0000000072 00000 n 
+0000000201 00000 n 
+0000000388 00000 n 
+0000000575 00000 n 
+0000000762 00000 n 
+0000000949 00000 n 
+0000001136 00000 n 
+0000001323 00000 n 
+0000001510 00000 n 
+0000001697 00000 n 
+0000001884 00000 n 
+0000002071 00000 n 
+0000002167 00000 n 
+0000002268 00000 n 
+0000002372 00000 n 
+0000002468 00000 n 
+0000002569 00000 n 
+0000002810 00000 n 
+0000006850 00000 n 
+0000010860 00000 n 
+0000014900 00000 n 
+0000018940 00000 n 
+0000022980 00000 n 
+0000027020 00000 n 
+0000031060 00000 n 
+0000035100 00000 n 
+0000039140 00000 n 
+trailer
+<< /Size 29 /Root 1 0 R /Info 18 0 R >>
+startxref
+43180
+%%EOF
+

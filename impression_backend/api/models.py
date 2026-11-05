@@ -168,7 +168,10 @@ class ProductStock(models.Model):
         unique_together = ('product', 'warehouse', 'date', 'company')  # Consider including company here for uniqueness?
 
     def __str__(self):
-        return f"{self.product.name} @ {self.warehouse.name} on {self.date} ({self.company.name})"
+        prod_name = getattr(self.product, 'product_name', getattr(self.product, 'name', 'Product'))
+        wh_name = getattr(self.warehouse, 'name', 'Warehouse') if self.warehouse else 'Warehouse'
+        co_name = getattr(self.company, 'name', 'Company') if self.company else 'Company'
+        return f"{prod_name} @ {wh_name} on {self.date} ({co_name})"
 
     
 
@@ -369,9 +372,6 @@ class CampaignLeadAttempt(models.Model):
         return f"Lead {self.lead_id} Attempt {self.attempt_number}"
 
 
-from django.db import models
-from django.contrib.postgres.fields import JSONField  # or use models.JSONField in Django 3.1+
-
 class SavedReport(models.Model):
     name = models.CharField(max_length=255)
     row_header = models.CharField(max_length=100)
@@ -383,3 +383,229 @@ class SavedReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     hidden = models.BooleanField(default=False)
 
+
+class Lead(models.Model):
+    STATUS_LEAD = 'Lead'
+    STATUS_HOSTLEAD = 'HostLead'
+    STATUS_CONVERTED = 'Converted'
+
+    STATUS_CHOICES = (
+        (STATUS_LEAD, 'Lead'),
+        (STATUS_HOSTLEAD, 'HostLead'),
+        (STATUS_CONVERTED, 'Converted'),
+    )
+
+    company_name = models.CharField(max_length=255, blank=True, default='')
+    first_name = models.CharField(max_length=150, blank=True, default='')
+    last_name = models.CharField(max_length=150, blank=True, default='')
+    email = models.CharField(max_length=255, blank=True, default='', db_index=True)
+    secondary_email = models.CharField(max_length=255, blank=True, default='')
+    phone = models.CharField(max_length=50, blank=True, default='', db_index=True)
+    secondary_phone = models.CharField(max_length=50, blank=True, default='')
+    mobile = models.CharField(max_length=50, blank=True, default='')
+    secondary_mobile = models.CharField(max_length=50, blank=True, default='')
+    address_line1 = models.TextField(blank=True, default='')
+    address_line2 = models.TextField(blank=True, default='')
+    city = models.CharField(max_length=100, blank=True, default='', db_index=True)
+    state = models.CharField(max_length=100, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
+    pincode = models.CharField(max_length=20, blank=True, default='')
+    website = models.CharField(max_length=255, blank=True, default='')
+    segment = models.CharField(max_length=255, blank=True, default='')
+    category = models.CharField(max_length=255, blank=True, default='')
+    rating = models.CharField(max_length=50, blank=True, default='')
+    notes = models.TextField(blank=True, default='')
+    raw_data = models.JSONField(default=dict, blank=True)
+
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_LEAD, db_index=True)
+    status_updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='status_updated_leads')
+    status_updated_at = models.DateTimeField(null=True, blank=True)
+
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, related_name='leads')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_leads', db_index=True)
+    assigned_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through='LeadAssignment',
+        through_fields=('lead', 'user'),
+        related_name='multi_assigned_leads',
+        blank=True
+    )
+    assigned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='dispatched_leads')
+    assigned_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_leads')
+    excel_name = models.CharField(max_length=255, blank=True, default='')
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'lead'
+        ordering = ['-id']
+
+    def __str__(self):
+        name = f"{self.first_name} {self.last_name}".strip()
+        return name or self.company_name or f"Lead #{self.id}"
+
+
+class LeadAssignment(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='assignments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='lead_assignments')
+    assigned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_lead_assignments')
+    assigned_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'lead_assignments'
+        unique_together = ('lead', 'user')
+        ordering = ['-assigned_at']
+
+    def __str__(self):
+        return f"Lead #{self.lead_id} -> User #{self.user_id}"
+
+
+class LeadAssignmentHistory(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='assignment_history')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='lead_history_assigned')
+    assigned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='lead_history_actor')
+    assigned_at = models.DateTimeField(default=timezone.now)
+    previous_assignee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='lead_history_prev')
+    notes = models.TextField(blank=True, default='')
+
+    class Meta:
+        db_table = 'lead_assignment_history'
+        ordering = ['-assigned_at']
+
+    def __str__(self):
+        assignee = self.assigned_to.username if self.assigned_to else "Unassigned"
+        return f"Lead #{self.lead_id} -> {assignee} by {self.assigned_by}"
+
+
+class LeadStatusHistory(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='status_history')
+    old_status = models.CharField(max_length=30, blank=True, default='')
+    new_status = models.CharField(max_length=30)
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='lead_status_changes')
+    changed_at = models.DateTimeField(default=timezone.now)
+    notes = models.TextField(blank=True, default='')
+
+    class Meta:
+        db_table = 'lead_status_history'
+        ordering = ['-changed_at']
+
+    def __str__(self):
+        return f"Lead #{self.lead_id}: {self.old_status} -> {self.new_status}"
+
+
+class LeadTask(models.Model):
+    STATUS_PENDING = 'Pending'
+    STATUS_COMPLETED = 'Completed'
+
+    STATUS_CHOICES = (
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_COMPLETED, 'Completed'),
+    )
+
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='tasks')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='lead_tasks', db_index=True)
+    description = models.TextField(blank=True, default='')
+    assigned_date = models.DateField(default=timezone.now)
+    next_followup_date = models.DateField(null=True, blank=True, db_index=True)
+    reminder_date = models.DateField(null=True, blank=True, db_index=True)
+    future_discussion = models.TextField(blank=True, default='')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'lead_tasks'
+        ordering = ['-id']
+
+    def __str__(self):
+        return f"Task #{self.id} for Lead #{self.lead_id} ({self.status})"
+
+    def save(self, *args, **kwargs):
+        # Automatically calculate reminder_date as 1 day before next_followup_date
+        if self.next_followup_date:
+            from datetime import timedelta, datetime, date
+            if isinstance(self.next_followup_date, str):
+                try:
+                    self.next_followup_date = datetime.strptime(str(self.next_followup_date)[:10], '%Y-%m-%d').date()
+                except Exception:
+                    self.next_followup_date = None
+            self.reminder_date = (self.next_followup_date - timedelta(days=1)) if self.next_followup_date else None
+        else:
+            self.reminder_date = None
+        super().save(*args, **kwargs)
+
+
+class TaskCallHistory(models.Model):
+    INTERACTION_CALL = 'Call'
+    INTERACTION_WHATSAPP = 'WhatsApp'
+    INTERACTION_EMAIL = 'Email'
+
+    INTERACTION_CHOICES = (
+        (INTERACTION_CALL, 'Call'),
+        (INTERACTION_WHATSAPP, 'WhatsApp'),
+        (INTERACTION_EMAIL, 'Email'),
+    )
+    task = models.ForeignKey(LeadTask, on_delete=models.CASCADE, related_name='call_history')
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='task_call_history')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='recorded_task_calls')
+    interaction_type = models.CharField(max_length=20, default=INTERACTION_CALL, choices=INTERACTION_CHOICES)
+    call_date = models.DateField(default=timezone.now)
+    discussion = models.TextField(blank=True, default='')
+    next_followup_date = models.DateField(null=True, blank=True)
+    future_discussion = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'task_call_history'
+        ordering = ['-call_date', '-id']
+
+    def __str__(self):
+        return f"Call on {self.call_date} for Task #{self.task_id}"
+
+
+
+
+class MobileDeviceToken(models.Model):
+    PLATFORM_ANDROID = 'android'
+    PLATFORM_IOS = 'ios'
+    PLATFORM_WEB = 'web'
+
+    PLATFORM_CHOICES = (
+        (PLATFORM_ANDROID, 'Android'),
+        (PLATFORM_IOS, 'iOS'),
+        (PLATFORM_WEB, 'Web'),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='device_tokens')
+    token = models.CharField(max_length=255, db_index=True)
+    platform = models.CharField(max_length=20, default=PLATFORM_ANDROID, choices=PLATFORM_CHOICES)
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'mobile_device_tokens'
+        unique_together = ('user', 'token')
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.user.username} ({self.platform}): {self.token[:20]}..."
+
+
+class BlacklistedRefreshToken(models.Model):
+    token_jti = models.CharField(max_length=64, db_index=True, unique=True)
+    token = models.TextField(blank=True, default='')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blacklisted_tokens', null=True, blank=True)
+    blacklisted_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'blacklisted_refresh_tokens'
+        ordering = ['-blacklisted_at']
+
+    def __str__(self):
+        return f"Blacklisted token {self.token_jti[:8]}... for {self.user}"
