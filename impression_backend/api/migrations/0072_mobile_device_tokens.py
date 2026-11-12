@@ -9,7 +9,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0071_lead_assignments_multi'),
+        ('api', '0073_alter_product_table_alter_role_table_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

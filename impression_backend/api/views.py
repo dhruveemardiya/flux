@@ -1634,6 +1634,12 @@ def login_user(request):
 
     # Authenticate user
     user = authenticate(username=username, password=password)
+    if not user:
+        matched_user = User.objects.filter(
+            Q(username__iexact=username) | Q(first_name__iexact=username)
+        ).first()
+        if matched_user and matched_user.check_password(password):
+            user = matched_user
 
     if user:
         token, _ = Token.objects.get_or_create(user=user)
@@ -1643,12 +1649,12 @@ def login_user(request):
             'role': serializer.data.get('role')
         })
 
-
-    try:
-        User.objects.get(username=username)
+    user_found = User.objects.filter(
+        Q(username__iexact=username) | Q(first_name__iexact=username)
+    ).exists()
+    if user_found:
         return Response({'error': 'Incorrect password'}, status=status.HTTP_401_UNAUTHORIZED)
-    except User.DoesNotExist:
-        return Response({'error': 'Incorrect username'}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response({'error': 'Incorrect username'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 

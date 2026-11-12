@@ -505,7 +505,8 @@ class LeadTask(models.Model):
     )
 
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='tasks')
-    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='lead_tasks', db_index=True)
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='lead_tasks', db_index=True)
+    assigned_users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='TaskAssignment', through_fields=('task', 'user'), related_name='assigned_tasks', blank=True)
     description = models.TextField(blank=True, default='')
     assigned_date = models.DateField(default=timezone.now)
     next_followup_date = models.DateField(null=True, blank=True, db_index=True)
@@ -537,6 +538,88 @@ class LeadTask(models.Model):
         else:
             self.reminder_date = None
         super().save(*args, **kwargs)
+
+class TaskAssignment(models.Model):
+    STATUS_PENDING = 'Pending'
+    STATUS_COMPLETED = 'Completed'
+
+    STATUS_CHOICES = (
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_COMPLETED, 'Completed'),
+    )
+
+    task = models.ForeignKey(LeadTask, on_delete=models.CASCADE, related_name='assignments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='task_assignments')
+    assigned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_task_assignments')
+    assigned_at = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    next_followup_date = models.DateField(null=True, blank=True, db_index=True)
+    reminder_date = models.DateField(null=True, blank=True, db_index=True)
+    future_discussion = models.TextField(blank=True, default='')
+
+    class Meta:
+        db_table = 'task_assignments'
+        unique_together = ('task', 'user')
+        ordering = ['-assigned_at']
+
+    def __str__(self):
+        return f"Task #{self.task_id} -> User #{self.user_id} ({self.status})"
+
+    def save(self, *args, **kwargs):
+        if self.next_followup_date:
+            from datetime import timedelta, datetime, date
+            if isinstance(self.next_followup_date, str):
+                try:
+                    self.next_followup_date = datetime.strptime(str(self.next_followup_date)[:10], '%Y-%m-%d').date()
+                except Exception:
+                    self.next_followup_date = None
+            self.reminder_date = (self.next_followup_date - timedelta(days=1)) if self.next_followup_date else None
+        else:
+            self.reminder_date = None
+        super().save(*args, **kwargs)
+
+
+class TaskActivity(models.Model):
+    ACTIVITY_CALL = 'Call'
+    ACTIVITY_WHATSAPP = 'WhatsApp'
+    ACTIVITY_EMAIL = 'Email'
+    ACTIVITY_COMMENT = 'Comment'
+    ACTIVITY_STATUS_CHANGE = 'Status Change'
+    ACTIVITY_FOLLOWUP_SCHEDULED = 'Follow-up Scheduled'
+    ACTIVITY_TASK_CREATED = 'Task Created'
+    ACTIVITY_USER_ASSIGNED = 'User Assigned'
+    ACTIVITY_USER_REMOVED = 'User Removed'
+
+    ACTIVITY_CHOICES = (
+        (ACTIVITY_CALL, 'Call'),
+        (ACTIVITY_WHATSAPP, 'WhatsApp'),
+        (ACTIVITY_EMAIL, 'Email'),
+        (ACTIVITY_COMMENT, 'Comment'),
+        (ACTIVITY_STATUS_CHANGE, 'Status Change'),
+        (ACTIVITY_FOLLOWUP_SCHEDULED, 'Follow-up Scheduled'),
+        (ACTIVITY_TASK_CREATED, 'Task Created'),
+        (ACTIVITY_USER_ASSIGNED, 'User Assigned'),
+        (ACTIVITY_USER_REMOVED, 'User Removed'),
+    )
+
+    task = models.ForeignKey(LeadTask, on_delete=models.CASCADE, related_name='activities')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='task_activities')
+    activity_type = models.CharField(max_length=50, choices=ACTIVITY_CHOICES, default=ACTIVITY_COMMENT, db_index=True)
+    description = models.TextField(blank=True, default='')
+    next_followup_date = models.DateField(null=True, blank=True)
+    next_followup_notes = models.TextField(blank=True, default='')
+    old_status = models.CharField(max_length=30, blank=True, default='')
+    new_status = models.CharField(max_length=30, blank=True, default='')
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        db_table = 'task_activities'
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f"{self.activity_type} on Task #{self.task_id} by {self.user.username}"
+
 
 
 class TaskCallHistory(models.Model):
@@ -609,3 +692,55 @@ class BlacklistedRefreshToken(models.Model):
 
     def __str__(self):
         return f"Blacklisted token {self.token_jti[:8]}... for {self.user}"
+
+
+class FollowupNotification(models.Model):
+    task = models.ForeignKey(LeadTask, on_delete=models.CASCADE, related_name='followup_notifications')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='followup_notifications')
+    followup_date = models.DateField(db_index=True)
+    reminder_date = models.DateField(db_index=True)
+    future_discussion = models.TextField(blank=True, default='')
+    is_read = models.BooleanField(default=False, db_index=True)
+    is_cleared = models.BooleanField(default=False, db_index=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    cleared_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'followup_notifications'
+        unique_together = ('task', 'user', 'followup_date')
+        ordering = ['followup_date', 'id']
+
+    def __str__(self):
+        state = 'cleared' if self.is_cleared else 'unread'
+        return f"Notification Task #{self.task_id} -> User #{self.user_id} ({self.followup_date}, {state})"
+
+
+class Segment(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, default='')
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_segments'
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='updated_segments'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'segments'
+        ordering = ['name', '-id']
+
+    def __str__(self):
+        return self.name

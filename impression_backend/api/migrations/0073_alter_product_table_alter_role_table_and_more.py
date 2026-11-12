@@ -2,7 +2,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('api', '0072_mobile_device_tokens'),
+        ('api', '0071_lead_assignments_multi'),
     ]
 
     operations = [

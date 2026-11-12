@@ -225,6 +225,7 @@ export default function LeadGeneration({ user: propUser }) {
     assignable_users: [],
     segments: []
   });
+  const [segmentsList, setSegmentsList] = useState([]);
 
   // Selection state for Bulk Actions
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
@@ -401,11 +402,27 @@ export default function LeadGeneration({ user: propUser }) {
     }
   };
 
+  // Fetch active segments for Manual Lead Generation dropdown
+  const fetchSegmentsList = async () => {
+    const raw = (currentUser?.role || propUser?.role || localStorage.getItem("userRole") || "").trim().toLowerCase();
+    const role = raw.replace(/[\s_-]+/g, "");
+    if ((currentUser || localStorage.getItem("userRole")) && !["admin", "superadmin", "techadmin", "staff"].includes(role)) {
+      return;
+    }
+    try {
+      const res = await axiosInstance.get(`${BASE_URL}/api/segments/?active_only=true`);
+      setSegmentsList(res.data?.segments || []);
+    } catch (err) {
+      console.error("Failed to fetch segments list", err);
+    }
+  };
+
   useEffect(() => {
     const raw = (currentUser?.role || propUser?.role || localStorage.getItem("userRole") || "").trim().toLowerCase();
     const role = raw.replace(/[\s_-]+/g, "");
     if (["admin", "superadmin", "techadmin", "staff"].includes(role)) {
       fetchFilterOptions();
+      fetchSegmentsList();
     }
   }, [currentUser]);
 
@@ -603,6 +620,7 @@ export default function LeadGeneration({ user: propUser }) {
       ...initialForm,
       assigned_to: defaultAssignee
     });
+    fetchSegmentsList();
     setShowAddModal(true);
   };
 
@@ -658,6 +676,7 @@ export default function LeadGeneration({ user: propUser }) {
       status: lead.status || "Lead",
       assigned_to: assignedIds
     });
+    fetchSegmentsList();
     setShowEditModal(true);
   };
 
@@ -921,6 +940,22 @@ export default function LeadGeneration({ user: propUser }) {
   const duplicateMappedFields = useMemo(() => {
     return Object.keys(targetToHeaders).filter((k) => targetToHeaders[k].length > 1);
   }, [targetToHeaders]);
+
+  // Active segments for Manual Lead Generation dropdown (preserving current lead segment if editing historical record)
+  const manualSegmentOptions = useMemo(() => {
+    const map = new Map();
+    (segmentsList || []).forEach((seg) => {
+      const name = (seg?.name || "").trim();
+      if (name && !map.has(name.toLowerCase())) {
+        map.set(name.toLowerCase(), name);
+      }
+    });
+    const currentSeg = (leadForm.segment || "").trim();
+    if (currentSeg && !map.has(currentSeg.toLowerCase())) {
+      map.set(currentSeg.toLowerCase(), currentSeg);
+    }
+    return Array.from(map.values()).sort((a, b) => a.localeCompare(b));
+  }, [segmentsList, leadForm.segment]);
 
   // Perform Import
   const handleExecuteImport = async () => {
@@ -1434,6 +1469,22 @@ export default function LeadGeneration({ user: propUser }) {
                     <option value="Lead">Lead</option>
                     <option value="HostLead">HostLead</option>
                     <option value="Converted">Converted</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Segment</label>
+                  <select
+                    value={leadForm.segment || ""}
+                    onChange={(e) => setLeadForm({ ...leadForm, segment: e.target.value })}
+                    className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                  >
+                    <option value="">-- Select Segment --</option>
+                    {manualSegmentOptions.map((segName) => (
+                      <option key={segName} value={segName}>
+                        {segName}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

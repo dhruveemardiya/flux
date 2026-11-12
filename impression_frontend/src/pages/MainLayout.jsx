@@ -367,7 +367,7 @@
 //                 {darkMode ? <FaSun /> : <FaMoon />}
 //               </button>
 //               {user ? (
-//                 <span className="text-gray-700 dark:text-gray-300 font-medium">{user.username}</span>
+//                 <span className="text-gray-700 dark:text-gray-300 font-medium">{((user.first_name || user.last_name) ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.username)}</span>
 //               ) : (
 //                 <span className="text-gray-400 italic">Loading user...</span>
 //               )}
@@ -411,14 +411,14 @@
 
 
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   FaBars, FaSignOutAlt, FaMoon, FaSun,
   FaBox, FaChartBar, FaUsers, FaUpload, FaKey, FaDatabase,
   FaPlus, FaCheckSquare, FaUserPlus, FaUserShield, FaTools,
   FaTimes, FaBuilding,
   FaCog, FaAddressCard, FaMapMarkerAlt, FaUserFriends,
-  FaBell, FaTasks
+  FaBell, FaTasks, FaLayerGroup
 } from "react-icons/fa";
 import axios from "axios";
 import BASE_URL from "./config";
@@ -453,24 +453,29 @@ export default function MainLayout({ user: propUser }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notificationRef = useRef(null);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) return;
-      try {
-        const res = await axios.get(`${BASE_URL}/api/tasks/notifications/`, {
-          headers: { Authorization: `Token ${token}` },
-        });
-        setNotifications(res.data.notifications || []);
-      } catch (err) {
-        // silent fail
-      }
-    };
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    try {
+      const res = await axios.get(`${BASE_URL}/api/tasks/notifications/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setNotifications(res.data.notifications || []);
+    } catch (err) {
+      // silent fail
+    }
+  }, []);
 
+  useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    const handleNotifSync = () => fetchNotifications();
+    window.addEventListener("followup-notifications-updated", handleNotifSync);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("followup-notifications-updated", handleNotifSync);
+    };
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -544,6 +549,7 @@ export default function MainLayout({ user: propUser }) {
         items: [
         { icon: FaDatabase, text: "Data Mapping", path: "/data-mapping" },
         { icon: FaAddressCard, text: "Campaign", path: "/campaign" },
+        { icon: FaLayerGroup, text: "New Segment", path: "/new-segment" },
         { icon: FaAddressCard, text: "Courier Tracking", path: "/courier-tracking" },
         { icon: FaMapMarkerAlt, text: "Track Map", path: "/track-map" },
       ],
@@ -931,9 +937,25 @@ export default function MainLayout({ user: propUser }) {
                         notifications.map((n) => (
                           <div
                             key={n.id}
-                            onClick={() => {
+                            onClick={async () => {
                               setNotificationsOpen(false);
-                              navigate(`/task-manager?taskId=${n.task_id}`);
+                              setNotifications((prev) => prev.filter((item) => item.id !== n.id));
+                              const token = localStorage.getItem("authToken");
+                              if (token) {
+                                try {
+                                  const readRes = await axios.post(
+                                    `${BASE_URL}/api/tasks/notifications/${n.id}/read/`,
+                                    { notification_id: n.id, task_id: n.task_id },
+                                    { headers: { Authorization: `Token ${token}` } }
+                                  );
+                                  if (Array.isArray(readRes.data?.notifications)) {
+                                    setNotifications(readRes.data.notifications);
+                                  }
+                                } catch (err) {
+                                  // TaskManager will also clear idempotently when task page opens
+                                }
+                              }
+                              navigate(`/task-manager?taskId=${n.task_id}&notificationId=${n.id}`);
                             }}
                             className="p-3 hover:bg-blue-50/50 dark:hover:bg-gray-800/70 cursor-pointer transition flex items-start gap-2.5"
                           >
@@ -987,7 +1009,7 @@ export default function MainLayout({ user: propUser }) {
                 {darkMode ? <FaSun /> : <FaMoon />}
               </button>
               {user ? (
-                <span className="text-gray-700 dark:text-gray-300 font-medium">{user.username}</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium">{((user.first_name || user.last_name) ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.username)}</span>
               ) : (
                 <span className="text-gray-400 italic">Loading user...</span>
               )}

@@ -18,3 +18,7 @@ venv/
 *.sql
 *.csv
 
+
+# Generated frontend and Django static build files
+impression_backend/static/
+impression_backend/staticfiles/

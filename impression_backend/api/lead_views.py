@@ -17,7 +17,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Lead, LeadAssignment, LeadAssignmentHistory, LeadStatusHistory, LeadTask, User, Company
+from .models import Lead, LeadAssignment, LeadAssignmentHistory, LeadStatusHistory, LeadTask, Segment, User, Company
 from .serializers import LeadSerializer, LeadAssignmentHistorySerializer, LeadStatusHistorySerializer
 
 logger = logging.getLogger(__name__)
@@ -68,6 +68,43 @@ def _is_admin_or_superadmin(user):
 
 def _can_assign_leads(user):
     return _is_lead_admin(user)
+
+
+def _build_segments_counts(qs, include_all_active=False):
+    segment_group = list(
+        qs.exclude(segment='')
+        .exclude(segment__isnull=True)
+        .values('segment')
+        .annotate(count=Count('id'))
+        .order_by('segment')
+    )
+    segment_map = {}
+    for s in segment_group:
+        name = (s.get('segment') or '').strip()
+        if not name:
+            continue
+        key = name.lower()
+        if key in segment_map:
+            segment_map[key]['count'] += s['count']
+        else:
+            segment_map[key] = {'name': name, 'count': s['count']}
+
+    if include_all_active:
+        for seg in Segment.objects.filter(is_active=True).order_by('name'):
+            seg_name = (seg.name or '').strip()
+            if not seg_name:
+                continue
+            key = seg_name.lower()
+            if key in segment_map:
+                segment_map[key]['name'] = seg_name
+            else:
+                segment_map[key] = {'name': seg_name, 'count': 0}
+
+    segments_list = sorted(segment_map.values(), key=lambda x: x['name'].lower())
+    unsegmented_count = qs.filter(Q(segment='') | Q(segment__isnull=True)).count()
+    if unsegmented_count > 0:
+        segments_list.append({'name': 'Unsegmented', 'count': unsegmented_count})
+    return segments_list
 
 
 def _lead_queryset_for_user(user):
@@ -199,16 +236,7 @@ def leads_list_create_api(request):
                 pass
 
         # Calculate Segment breakdown dynamically
-        segment_group = list(
-            base_qs.exclude(segment='')
-            .values('segment')
-            .annotate(count=Count('id'))
-            .order_by('segment')
-        )
-        unsegmented_count = base_qs.filter(Q(segment='') | Q(segment__isnull=True)).count()
-        segments_list = [{'name': s['segment'], 'count': s['count']} for s in segment_group]
-        if unsegmented_count > 0:
-            segments_list.append({'name': 'Unsegmented', 'count': unsegmented_count})
+        segments_list = _build_segments_counts(base_qs, include_all_active=is_admin)
 
         # Calculate Assignable Users with Dynamic Counts
         assignable_users = []
@@ -360,7 +388,7 @@ def leads_list_create_api(request):
             country=data.get('country', '').strip(),
             pincode=data.get('pincode', '').strip(),
             website=data.get('website', '').strip(),
-            segment=data.get('segment', '').strip(),
+            segment=(data.get('segment') or '').strip(),
             category=data.get('category', '').strip(),
             rating=data.get('rating', '').strip(),
             notes=data.get('notes', '').strip(),
@@ -526,7 +554,10 @@ def lead_detail_api(request, lead_id):
             'category', 'rating', 'notes'
         ]:
             if field in data:
-                setattr(lead, field, data[field])
+                val = data[field]
+                if field == 'segment':
+                    val = (str(val) if val is not None else '').strip()
+                setattr(lead, field, val)
 
         if 'status' in data:
             val = data['status']
@@ -1332,16 +1363,7 @@ def lead_filters_options_api(request):
     statuses = [Lead.STATUS_LEAD, Lead.STATUS_HOSTLEAD, Lead.STATUS_CONVERTED]
 
     # Segments breakdown with dynamic counts
-    segment_group = list(
-        qs.exclude(segment='')
-        .values('segment')
-        .annotate(count=Count('id'))
-        .order_by('segment')
-    )
-    unsegmented_count = qs.filter(Q(segment='') | Q(segment__isnull=True)).count()
-    segments_list = [{'name': s['segment'], 'count': s['count']} for s in segment_group]
-    if unsegmented_count > 0:
-        segments_list.append({'name': 'Unsegmented', 'count': unsegmented_count})
+    segments_list = _build_segments_counts(qs, include_all_active=is_admin)
 
     counts = {
         'all': qs.count(),

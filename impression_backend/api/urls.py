@@ -37,7 +37,11 @@ from .lead_views import (
 from .task_views import (
     tasks_list_create_api, task_detail_api, task_record_call_api,
     task_status_toggle_api, task_available_leads_api, task_notifications_api,
-    task_communication_history_api
+    task_notification_mark_read_api,
+    task_communication_history_api, task_activities_api, task_assignable_users_api
+)
+from .segment_views import (
+    segments_list_create_api, segment_detail_api
 )
 
 company_list = CompanyViewSet.as_view({
@@ -82,9 +86,13 @@ urlpatterns = [
     path('tasks/', tasks_list_create_api, name='tasks_list_create_api'),
     path('tasks/available-leads/', task_available_leads_api, name='task_available_leads_api'),
     path('tasks/notifications/', task_notifications_api, name='task_notifications_api'),
+    path('tasks/notifications/read/', task_notification_mark_read_api, name='task_notification_mark_read_api'),
+    path('tasks/notifications/<int:notification_id>/read/', task_notification_mark_read_api, name='task_notification_detail_read_api'),
     path('tasks/<int:task_id>/', task_detail_api, name='task_detail_api'),
     path('tasks/<int:task_id>/calls/', task_record_call_api, name='task_record_call_api'),
+    path('tasks/assignable-users/', task_assignable_users_api, name='task_assignable_users_api'),
     path('tasks/<int:task_id>/history/', task_communication_history_api, name='task_communication_history_api'),
+    path('tasks/<int:task_id>/activities/', task_activities_api, name='task_activities_api'),
     path('tasks/<int:task_id>/status/', task_status_toggle_api, name='task_status_toggle_api'),
 
     # -------------------------------------------------------------
@@ -111,6 +119,8 @@ urlpatterns = [
     path('campaigns/<int:campaign_id>/leads/<int:lead_id>/', campaign_lead_detail_api, name='campaign_lead_detail_api'),
     path('campaigns/<int:campaign_id>/leads/<int:lead_id>/delete/', campaign_lead_delete_api, name='campaign_lead_delete_api'),
     path('campaigns/<int:campaign_id>/leads/<int:lead_id>/attempts/', campaign_lead_attempts_api, name='campaign_lead_attempts_api'),
+    path('segments/', segments_list_create_api, name='segments_list_create_api'),
+    path('segments/<int:segment_id>/', segment_detail_api, name='segment_detail_api'),
     path('courier-names/', courier_names_api, name='courier_names_api'),
     path('product-names/', product_names_api, name='product_names_api'),
 

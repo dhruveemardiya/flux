@@ -46,6 +46,7 @@ import CreateReport from "./pages/CreateReport";
 import StaticReport from "./pages/StaticReport";
 import LeadGeneration from "./pages/LeadGeneration";
 import TaskManager from "./pages/TaskManager";
+import NewSegment from "./pages/NewSegment";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -128,8 +129,8 @@ export default function App() {
 
     fetchInitialData();
   }, []);
-const allowedUserPaths = ["/stock-count", "/upload-excel", "/data-mapping", "/change-password", '/dashboard', '/campaigns/:id', '/campaign', '/courier-tracking', '/track-map', '/report-dashboard', '/reports/:id', '/static-report', '/lead-generation', '/task-manager'];
-  const allowedtechadminPaths = ["/users","/create-report","/reports/:id","/edit-report/:id", "/create-permission", "/add-permission",'/dashboard','/add-role','/edit-user/:id','/add-user','/company','/add-company','/companies/edit/:id','/report-dashboard','/report-settings',"static-report", '/lead-generation', '/task-manager'];
+const allowedUserPaths = ["/stock-count", "/upload-excel", "/data-mapping", "/change-password", '/dashboard', '/campaigns/:id', '/campaign', '/new-segment', '/courier-tracking', '/track-map', '/report-dashboard', '/reports/:id', '/static-report', '/lead-generation', '/task-manager'];
+  const allowedtechadminPaths = ["/users","/create-report","/reports/:id","/edit-report/:id", "/create-permission", "/add-permission",'/dashboard','/add-role','/edit-user/:id','/add-user','/company','/add-company','/companies/edit/:id','/report-dashboard','/report-settings',"static-report", '/new-segment', '/lead-generation', '/task-manager'];
 const adminAllowedPaths = [
   "/dashboard",
   "/users",
@@ -147,6 +148,7 @@ const adminAllowedPaths = [
   "/change-password",
   "/data-mapping",
   "/campaign",
+  "/new-segment",
   "/courier-tracking",
   "/campaigns/:id",
   "/track-map",
@@ -240,6 +242,7 @@ const RestrictedRoute = ({ children, path }) => {
             <Route path="upload-excel" element={<UploadFile user={user} />} />
             <Route path="data-mapping" element={<RestrictedRoute path="/data-mapping"><DataMapping /></RestrictedRoute>} />
             <Route path="campaign" element={<RestrictedRoute path="/campaign"><CampaignView /></RestrictedRoute>} />
+            <Route path="new-segment" element={<RestrictedRoute path="/new-segment"><NewSegment user={user} /></RestrictedRoute>} />
             <Route path="lead-generation" element={<RestrictedRoute path="/lead-generation"><LeadGeneration user={user} /></RestrictedRoute>} />
             <Route path="task-manager" element={<RestrictedRoute path="/task-manager"><TaskManager user={user} /></RestrictedRoute>} />
             <Route

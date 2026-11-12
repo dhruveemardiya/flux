@@ -148,8 +148,10 @@ def auth_token_obtain_api(request):
         user = authenticate(username=username, password=password)
 
         if not user:
-            # Case-insensitive check and helpful password validation
-            existing = User.objects.filter(username__iexact=username).first()
+            # Case-insensitive check and first_name alias check
+            existing = User.objects.filter(
+                Q(username__iexact=username) | Q(first_name__iexact=username)
+            ).first()
             if existing:
                 if existing.check_password(password):
                     user = existing
