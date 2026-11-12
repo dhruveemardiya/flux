@@ -118,16 +118,25 @@ def segments_list_create_api(request):
     if len(name) > 255:
         return Response({'error': 'Segment name cannot exceed 255 characters.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if Segment.objects.filter(name__iexact=name).exists():
-        return Response({'error': f'Segment "{name}" already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+    with transaction.atomic():
+        existing_qs = Segment.objects.select_for_update().filter(name__iexact=name)
+        if existing_qs.filter(is_active=True).exists():
+            return Response(
+                {'error': f'Segment "{name}" already exists and is Active.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    segment = Segment.objects.create(
-        name=name,
-        description=description,
-        is_active=is_active,
-        created_by=request.user,
-        updated_by=request.user,
-    )
+        # Preserve existing inactive record(s) untouched; new segment is created as Active
+        if existing_qs.filter(is_active=False).exists():
+            is_active = True
+
+        segment = Segment.objects.create(
+            name=name,
+            description=description,
+            is_active=is_active,
+            created_by=request.user,
+            updated_by=request.user,
+        )
     counts_map = _get_lead_counts_by_segment()
     return Response({
         'message': 'Segment created successfully.',
@@ -183,20 +192,26 @@ def segment_detail_api(request, segment_id):
     if len(new_name) > 255:
         return Response({'error': 'Segment name cannot exceed 255 characters.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if Segment.objects.filter(name__iexact=new_name).exclude(id=segment.id).exists():
-        return Response({'error': f'Segment "{new_name}" already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+    target_is_active = segment.is_active
+    if 'is_active' in request.data:
+        raw_active = request.data.get('is_active')
+        if isinstance(raw_active, str):
+            target_is_active = raw_active.strip().lower() not in ('false', '0', 'no')
+        else:
+            target_is_active = bool(raw_active)
 
     with transaction.atomic():
+        if target_is_active and Segment.objects.select_for_update().filter(name__iexact=new_name, is_active=True).exclude(id=segment.id).exists():
+            return Response(
+                {'error': f'An active segment named "{new_name}" already exists.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         segment.name = new_name
         if 'description' in request.data:
             raw_desc = request.data.get('description')
             segment.description = (str(raw_desc) if raw_desc is not None else '').strip()
-        if 'is_active' in request.data:
-            raw_active = request.data.get('is_active')
-            if isinstance(raw_active, str):
-                segment.is_active = raw_active.strip().lower() not in ('false', '0', 'no')
-            else:
-                segment.is_active = bool(raw_active)
+        segment.is_active = target_is_active
         segment.updated_by = request.user
         segment.save()
 

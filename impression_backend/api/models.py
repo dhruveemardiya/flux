@@ -718,7 +718,7 @@ class FollowupNotification(models.Model):
 
 
 class Segment(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, db_index=True)
     description = models.TextField(blank=True, default='')
     is_active = models.BooleanField(default=True, db_index=True)
     created_by = models.ForeignKey(

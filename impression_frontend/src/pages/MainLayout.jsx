@@ -549,7 +549,6 @@ export default function MainLayout({ user: propUser }) {
         items: [
         { icon: FaDatabase, text: "Data Mapping", path: "/data-mapping" },
         { icon: FaAddressCard, text: "Campaign", path: "/campaign" },
-        { icon: FaLayerGroup, text: "New Segment", path: "/new-segment" },
         { icon: FaAddressCard, text: "Courier Tracking", path: "/courier-tracking" },
         { icon: FaMapMarkerAlt, text: "Track Map", path: "/track-map" },
       ],
@@ -646,6 +645,7 @@ export default function MainLayout({ user: propUser }) {
       items: [
         { icon: FaUserFriends, text: "Lead Generation", path: "/lead-generation" },
         { icon: FaTasks, text: "Task Manager", path: "/task-manager" },
+        { icon: FaLayerGroup, text: "New Segment", path: "/new-segment" },
       ],
     };
 

@@ -129,6 +129,28 @@ export default function NewSegment({ user: propUser }) {
     setShowFormModal(true);
   };
 
+  const duplicateValidation = useMemo(() => {
+    const trimmed = (formData.name || "").trim();
+    if (!trimmed) {
+      return { hasActiveConflict: false, hasInactiveMatch: false, trimmed: "" };
+    }
+    const lower = trimmed.toLowerCase();
+    const excludeId = editingSegment?.id;
+    const hasActiveConflict = (segments || []).some(
+      (seg) =>
+        Boolean(seg.is_active) &&
+        (seg.name || "").trim().toLowerCase() === lower &&
+        seg.id !== excludeId
+    );
+    const hasInactiveMatch = (segments || []).some(
+      (seg) =>
+        !seg.is_active &&
+        (seg.name || "").trim().toLowerCase() === lower &&
+        seg.id !== excludeId
+    );
+    return { hasActiveConflict, hasInactiveMatch, trimmed };
+  }, [formData.name, segments, editingSegment]);
+
   const handleSaveSegment = async (e) => {
     e.preventDefault();
     if (!isSegmentAdmin) {
@@ -142,12 +164,26 @@ export default function NewSegment({ user: propUser }) {
       return;
     }
 
+    // Frontend duplicate validation: only one Active segment with the same name is allowed at a time.
+    if (!editingSegment && duplicateValidation.hasActiveConflict) {
+      toast.error(`Segment "${trimmedName}" already exists and is Active.`);
+      return;
+    }
+    if (editingSegment && Boolean(formData.is_active) && duplicateValidation.hasActiveConflict) {
+      toast.error(`An active segment named "${trimmedName}" already exists. Only one Active segment with the same name is allowed.`);
+      return;
+    }
+
     setSaving(true);
     try {
+      const effectiveIsActive =
+        !editingSegment && duplicateValidation.hasInactiveMatch
+          ? true
+          : Boolean(formData.is_active);
       const payload = {
         name: trimmedName,
         description: (formData.description || "").trim(),
-        is_active: Boolean(formData.is_active),
+        is_active: effectiveIsActive,
       };
 
       if (editingSegment) {
@@ -438,9 +474,22 @@ export default function NewSegment({ user: propUser }) {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. NR IPHONE CCTV"
-                  className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${duplicateValidation.hasActiveConflict && (!editingSegment || formData.is_active)
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+                    }`}
                   autoFocus
                 />
+                {duplicateValidation.hasActiveConflict && (!editingSegment || formData.is_active) && (
+                  <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+                    Segment "{duplicateValidation.trimmed}" already exists and is Active. Only one Active segment with the same name is allowed.
+                  </p>
+                )}
+                {!editingSegment && !duplicateValidation.hasActiveConflict && duplicateValidation.hasInactiveMatch && (
+                  <p className="mt-1.5 text-xs font-medium text-blue-600 dark:text-blue-400">
+                    An Inactive segment named "{duplicateValidation.trimmed}" exists. Saving will create a new Active segment while preserving the inactive record.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -467,9 +516,10 @@ export default function NewSegment({ user: propUser }) {
                 </div>
                 <input
                   type="checkbox"
-                  checked={formData.is_active}
+                  checked={!editingSegment && duplicateValidation.hasInactiveMatch ? true : formData.is_active}
+                  disabled={!editingSegment && duplicateValidation.hasInactiveMatch}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="h-4 w-4 text-blue-600 rounded cursor-pointer"
+                  className="h-4 w-4 text-blue-600 rounded cursor-pointer disabled:opacity-60"
                 />
               </div>
 
