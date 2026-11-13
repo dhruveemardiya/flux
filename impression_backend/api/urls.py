@@ -43,6 +43,24 @@ from .task_views import (
 from .segment_views import (
     segments_list_create_api, segment_detail_api
 )
+from .crm_views import (
+    crm_users_api, crm_user_detail_api, crm_roles_api, crm_role_detail_api,
+    crm_permissions_get_api, crm_permissions_save_api,
+    crm_access_requests_api, crm_access_request_decision_api,
+    crm_access_request_approve_api, crm_access_request_reject_api, crm_access_logs_api,
+    crm_segments_api, crm_segment_detail_api, crm_segment_safe_delete_api,
+    crm_lead_assignments_list_api, crm_lead_assign_execute_api, crm_lead_unassign_execute_api,
+    crm_assignment_detail_api, crm_lead_reassign_execute_api,
+    crm_task_groups_api, crm_task_group_detail_api, crm_task_group_assign_api, crm_task_group_associate_leads_api,
+    crm_my_work_api, crm_my_work_activities_api, crm_my_work_activity_detail_api, crm_my_work_followups_api,
+    crm_activity_update_api,
+    crm_performance_reports_api, crm_reports_staff_api, crm_reports_task_groups_api, crm_reports_segments_api, crm_reports_export_api,
+    crm_quick_search_api, crm_lead_timeline_api, crm_lead_communications_api,
+    crm_dashboard_summary_api,
+    crm_leads_api, crm_lead_detail_api, crm_leads_search_api,
+    crm_lead_import_upload_api, crm_lead_import_validate_duplicates_api, crm_lead_import_commit_api,
+    crm_lead_import_preview_api, crm_lead_import_failed_rows_api, crm_import_history_api
+)
 
 company_list = CompanyViewSet.as_view({
     'get': 'list',
@@ -189,4 +207,75 @@ urlpatterns = [
 
     path("static-reorder-report/", static_reorder_report),
     path("sync_data/", sync_product_quantities),
+
+    # -------------------------------------------------------------
+    # Custom CRM Endpoints (Inside Lead Generation Module)
+    # -------------------------------------------------------------
+    path('crm/dashboard/summary/', crm_dashboard_summary_api, name='crm_dashboard_summary_api'),
+
+    # User & Role Management (Part 4)
+    path('crm/users/', crm_users_api, name='crm_users_api'),
+    path('crm/users/<int:user_id>/', crm_user_detail_api, name='crm_user_detail_api'),
+    path('crm/roles/', crm_roles_api, name='crm_roles_api'),
+    path('crm/roles/<int:role_id>/', crm_role_detail_api, name='crm_role_detail_api'),
+    path('crm/permissions/', crm_permissions_get_api, name='crm_permissions_get_api'),
+    path('crm/permissions/save/', crm_permissions_save_api, name='crm_permissions_save_api'),
+
+    # CRM Access Approval & Access Logs (Part 5)
+    path('crm/access-requests/', crm_access_requests_api, name='crm_access_requests_api'),
+    path('crm/access-requests/<int:request_id>/decision/', crm_access_request_decision_api, name='crm_access_request_decision_api'),
+    path('crm/access-requests/<int:request_id>/approve/', crm_access_request_approve_api, name='crm_access_request_approve_api'),
+    path('crm/access-requests/<int:request_id>/reject/', crm_access_request_reject_api, name='crm_access_request_reject_api'),
+    path('crm/access-logs/', crm_access_logs_api, name='crm_access_logs_api'),
+
+    # Segment Management (Part 6)
+    path('crm/segments/', crm_segments_api, name='crm_segments_api'),
+    path('crm/segments/<int:segment_id>/', crm_segment_detail_api, name='crm_segment_detail_api'),
+    path('crm/segments/<int:segment_id>/safe-delete/', crm_segment_safe_delete_api, name='crm_segment_safe_delete_api'),
+
+    # Lead Management (Part 7)
+    path('crm/leads/', crm_leads_api, name='crm_leads_api'),
+    path('crm/leads/search/', crm_leads_search_api, name='crm_leads_search_api'),
+    path('crm/leads/<int:lead_id>/', crm_lead_detail_api, name='crm_lead_detail_api'),
+
+    # Advanced Excel / CSV Import (Part 8)
+    path('crm/leads/import/upload/', crm_lead_import_upload_api, name='crm_lead_import_upload_api'),
+    path('crm/leads/import/validate/', crm_lead_import_validate_duplicates_api, name='crm_lead_import_validate_duplicates_api'),
+    path('crm/leads/import/commit/', crm_lead_import_commit_api, name='crm_lead_import_commit_api'),
+    path('crm/leads/import/<int:job_id>/commit/', crm_lead_import_commit_api, name='crm_lead_import_commit_job_api'),
+    path('crm/leads/import/<int:job_id>/preview/', crm_lead_import_preview_api, name='crm_lead_import_preview_api'),
+    path('crm/leads/import/<int:job_id>/failed-rows/', crm_lead_import_failed_rows_api, name='crm_lead_import_failed_rows_api'),
+    path('crm/leads/import/history/', crm_import_history_api, name='crm_import_history_api'),
+
+    # Lead Assignment (Part 9)
+    path('crm/assignments/', crm_lead_assignments_list_api, name='crm_lead_assignments_list_api'),
+    path('crm/assignments/<int:assignment_id>/', crm_assignment_detail_api, name='crm_assignment_detail_api'),
+    path('crm/assignments/assign/', crm_lead_assign_execute_api, name='crm_lead_assign_execute_api'),
+    path('crm/assignments/reassign/', crm_lead_reassign_execute_api, name='crm_lead_reassign_execute_api'),
+    path('crm/assignments/unassign/', crm_lead_unassign_execute_api, name='crm_lead_unassign_execute_api'),
+
+    # Task Management (Part 10)
+    path('crm/task-groups/', crm_task_groups_api, name='crm_task_groups_api'),
+    path('crm/task-groups/<int:task_group_id>/', crm_task_group_detail_api, name='crm_task_group_detail_api'),
+    path('crm/task-groups/<int:task_group_id>/assign/', crm_task_group_assign_api, name='crm_task_group_assign_api'),
+    path('crm/task-groups/<int:task_group_id>/associate-leads/', crm_task_group_associate_leads_api, name='crm_task_group_associate_leads_api'),
+
+    # My Work Dashboard (Part 11)
+    path('crm/my-work/', crm_my_work_api, name='crm_my_work_api'),
+    path('crm/my-work/activities/', crm_my_work_activities_api, name='crm_my_work_activities_api'),
+    path('crm/my-work/activities/<int:activity_id>/', crm_my_work_activity_detail_api, name='crm_my_work_activity_detail_api'),
+    path('crm/my-work/activities/<int:activity_id>/update/', crm_activity_update_api, name='crm_activity_update_api'),
+    path('crm/my-work/follow-ups/', crm_my_work_followups_api, name='crm_my_work_followups_api'),
+
+    # Performance Reports (Part 12)
+    path('crm/reports/performance/', crm_performance_reports_api, name='crm_performance_reports_api'),
+    path('crm/reports/staff/', crm_reports_staff_api, name='crm_reports_staff_api'),
+    path('crm/reports/task-groups/', crm_reports_task_groups_api, name='crm_reports_task_groups_api'),
+    path('crm/reports/segments/', crm_reports_segments_api, name='crm_reports_segments_api'),
+    path('crm/reports/export/', crm_reports_export_api, name='crm_reports_export_api'),
+
+    # Quick Lead Search & Communication Timeline (Part 13)
+    path('crm/quick-search/', crm_quick_search_api, name='crm_quick_search_api'),
+    path('crm/leads/<int:lead_id>/timeline/', crm_lead_timeline_api, name='crm_lead_timeline_api'),
+    path('crm/leads/<int:lead_id>/communications/', crm_lead_communications_api, name='crm_lead_communications_api'),
 ]

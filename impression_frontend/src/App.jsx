@@ -48,6 +48,18 @@ import LeadGeneration from "./pages/LeadGeneration";
 import TaskManager from "./pages/TaskManager";
 import NewSegment from "./pages/NewSegment";
 
+// Custom CRM Modules inside Lead Generation
+import CRMDashboard from "./pages/crm/CRMDashboard";
+import CRMUserManagement from "./pages/crm/CRMUserManagement";
+import CRMAccessLogs from "./pages/crm/CRMAccessLogs";
+import CRMSegmentManagement from "./pages/crm/CRMSegmentManagement";
+import CRMLeadManagement from "./pages/crm/CRMLeadManagement";
+import CRMLeadAssignment from "./pages/crm/CRMLeadAssignment";
+import CRMTaskManagement from "./pages/crm/CRMTaskManagement";
+import CRMMyWorkDashboard from "./pages/crm/CRMMyWorkDashboard";
+import CRMPerformanceReports from "./pages/crm/CRMPerformanceReports";
+import CRMQuickLeadSearch from "./pages/crm/CRMQuickLeadSearch";
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [showPrevDate, setShowPrevDate] = useState(false);
@@ -129,86 +141,86 @@ export default function App() {
 
     fetchInitialData();
   }, []);
-const allowedUserPaths = ["/stock-count", "/upload-excel", "/data-mapping", "/change-password", '/dashboard', '/campaigns/:id', '/campaign', '/new-segment', '/courier-tracking', '/track-map', '/report-dashboard', '/reports/:id', '/static-report', '/lead-generation', '/task-manager'];
-  const allowedtechadminPaths = ["/users","/create-report","/reports/:id","/edit-report/:id", "/create-permission", "/add-permission",'/dashboard','/add-role','/edit-user/:id','/add-user','/company','/add-company','/companies/edit/:id','/report-dashboard','/report-settings',"static-report", '/new-segment', '/lead-generation', '/task-manager'];
-const adminAllowedPaths = [
-  "/dashboard",
-  "/users",
-  "/add-user",
-  "/edit-user/:id",
-  "/product",
-  "/warehouse",
-  "/edit-warehouse/:id",
-  "/add-warehouse",
-  "/user-warehouse",
-  "/product-warehouse",
-  "/upload-excel",
-  "/stock-count",
-  "/stock-tally",
-  "/change-password",
-  "/data-mapping",
-  "/campaign",
-  "/new-segment",
-  "/courier-tracking",
-  "/campaigns/:id",
-  "/track-map",
-  "/lead-generation",
-  "/task-manager",
-];
+  const allowedUserPaths = ["/stock-count", "/upload-excel", "/data-mapping", "/change-password", '/dashboard', '/campaigns/:id', '/campaign', '/new-segment', '/courier-tracking', '/track-map', '/report-dashboard', '/reports/:id', '/static-report', '/lead-generation', '/task-manager'];
+  const allowedtechadminPaths = ["/users", "/create-report", "/reports/:id", "/edit-report/:id", "/create-permission", "/add-permission", '/dashboard', '/add-role', '/edit-user/:id', '/add-user', '/company', '/add-company', '/companies/edit/:id', '/report-dashboard', '/report-settings', "static-report", '/new-segment', '/lead-generation', '/task-manager'];
+  const adminAllowedPaths = [
+    "/dashboard",
+    "/users",
+    "/add-user",
+    "/edit-user/:id",
+    "/product",
+    "/warehouse",
+    "/edit-warehouse/:id",
+    "/add-warehouse",
+    "/user-warehouse",
+    "/product-warehouse",
+    "/upload-excel",
+    "/stock-count",
+    "/stock-tally",
+    "/change-password",
+    "/data-mapping",
+    "/campaign",
+    "/new-segment",
+    "/courier-tracking",
+    "/campaigns/:id",
+    "/track-map",
+    "/lead-generation",
+    "/task-manager",
+  ];
 
-// Ensure techadmin and user lists contain campaign where appropriate
-allowedtechadminPaths.push('/data-mapping','/campaign','/courier-tracking');
-allowedUserPaths && allowedUserPaths.push && allowedUserPaths.push('/campaign','/courier-tracking');
+  // Ensure techadmin and user lists contain campaign where appropriate
+  allowedtechadminPaths.push('/data-mapping', '/campaign', '/courier-tracking');
+  allowedUserPaths && allowedUserPaths.push && allowedUserPaths.push('/campaign', '/courier-tracking');
 
 
-const RestrictedRoute = ({ children, path }) => {
-  const location = useLocation();
-  const hasWarnedRef = useRef(false);
-  const token = localStorage.getItem("authToken");
-  const storedRole = localStorage.getItem("userRole") || "";
-  const rawRole = (user?.role || storedRole || "").trim().toLowerCase();
-  const normalizedRole = rawRole.replace(/[\s_-]+/g, "");
+  const RestrictedRoute = ({ children, path }) => {
+    const location = useLocation();
+    const hasWarnedRef = useRef(false);
+    const token = localStorage.getItem("authToken");
+    const storedRole = localStorage.getItem("userRole") || "";
+    const rawRole = (user?.role || storedRole || "").trim().toLowerCase();
+    const normalizedRole = rawRole.replace(/[\s_-]+/g, "");
 
-  // Explicit check for Lead Generation and Task Manager: Accessible to all authorized logged-in users
-  if (path === "/lead-generation" || path === "/task-manager") {
+    // Explicit check for Lead Generation / CRM modules: Accessible to all authorized logged-in users
+    if (path && (path.startsWith("/lead-generation") || path === "/lead-generation" || path === "/task-manager" || path === "/new-segment")) {
+      return children;
+    }
+
+    if (normalizedRole === "user" && !allowedUserPaths.includes(path)) {
+      if (!hasWarnedRef.current) {
+        toast.error("Unauthorized Access!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        hasWarnedRef.current = true;
+      }
+      return <Navigate to="/dashboard" replace />;
+    }
+
+    if (normalizedRole === "techadmin" && !allowedtechadminPaths.includes(path)) {
+      if (!hasWarnedRef.current) {
+        toast.error("Access Denied!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        hasWarnedRef.current = true;
+      }
+      return <Navigate to="/dashboard" replace />;
+    }
+
+    if (normalizedRole === "admin" && !adminAllowedPaths.includes(path)) {
+      if (!hasWarnedRef.current) {
+        toast.error("Access Denied!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        hasWarnedRef.current = true;
+      }
+      return <Navigate to="/dashboard" replace />;
+    }
+
     return children;
-  }
-
-  if (normalizedRole === "user" && !allowedUserPaths.includes(path)) {
-    if (!hasWarnedRef.current) {
-      toast.error("Unauthorized Access!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      hasWarnedRef.current = true;
-    }
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  if (normalizedRole === "techadmin" && !allowedtechadminPaths.includes(path)) {
-    if (!hasWarnedRef.current) {
-      toast.error("Access Denied!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      hasWarnedRef.current = true;
-    }
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  if (normalizedRole === "admin" && !adminAllowedPaths.includes(path)) {
-    if (!hasWarnedRef.current) {
-      toast.error("Access Denied!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      hasWarnedRef.current = true;
-    }
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
-};
+  };
 
 
   return (
@@ -216,12 +228,12 @@ const RestrictedRoute = ({ children, path }) => {
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
-        <Route
-  path="/"
-  element={
-    user ? <Navigate to="/dashboard" replace /> : <Login setUser={setUser} user={user} />
-  }
-/>
+          <Route
+            path="/"
+            element={
+              user ? <Navigate to="/dashboard" replace /> : <Login setUser={setUser} user={user} />
+            }
+          />
 
           <Route
             path="/"
@@ -242,9 +254,25 @@ const RestrictedRoute = ({ children, path }) => {
             <Route path="upload-excel" element={<UploadFile user={user} />} />
             <Route path="data-mapping" element={<RestrictedRoute path="/data-mapping"><DataMapping /></RestrictedRoute>} />
             <Route path="campaign" element={<RestrictedRoute path="/campaign"><CampaignView /></RestrictedRoute>} />
-            <Route path="new-segment" element={<RestrictedRoute path="/new-segment"><NewSegment user={user} /></RestrictedRoute>} />
-            <Route path="lead-generation" element={<RestrictedRoute path="/lead-generation"><LeadGeneration user={user} /></RestrictedRoute>} />
-            <Route path="task-manager" element={<RestrictedRoute path="/task-manager"><TaskManager user={user} /></RestrictedRoute>} />
+
+            {/* Custom CRM Modules inside Lead Generation */}
+            <Route path="lead-generation/dashboard" element={<RestrictedRoute path="/lead-generation/dashboard"><CRMDashboard user={user} /></RestrictedRoute>} />
+            <Route path="lead-generation/users" element={<RestrictedRoute path="/lead-generation/users"><CRMUserManagement user={user} /></RestrictedRoute>} />
+            {/* Temporarily hidden: Login Approval & Access Logs not required in current release */}
+            <Route path="lead-generation/access-logs" element={<Navigate to="/lead-generation/dashboard" replace />} />
+            {/* <Route path="lead-generation/access-logs" element={<RestrictedRoute path="/lead-generation/access-logs"><CRMAccessLogs user={user} /></RestrictedRoute>} /> */}
+            <Route path="lead-generation/segments" element={<RestrictedRoute path="/lead-generation/segments"><CRMSegmentManagement user={user} /></RestrictedRoute>} />
+            <Route path="lead-generation/leads" element={<RestrictedRoute path="/lead-generation/leads"><CRMLeadManagement user={user} /></RestrictedRoute>} />
+            <Route path="lead-generation/assignments" element={<RestrictedRoute path="/lead-generation/assignments"><CRMLeadAssignment user={user} /></RestrictedRoute>} />
+            <Route path="lead-generation/tasks" element={<RestrictedRoute path="/lead-generation/tasks"><CRMTaskManagement user={user} /></RestrictedRoute>} />
+            <Route path="lead-generation/my-work" element={<RestrictedRoute path="/lead-generation/my-work"><CRMMyWorkDashboard user={user} /></RestrictedRoute>} />
+            <Route path="lead-generation/reports" element={<RestrictedRoute path="/lead-generation/reports"><CRMPerformanceReports user={user} /></RestrictedRoute>} />
+            <Route path="lead-generation/quick-search" element={<RestrictedRoute path="/lead-generation/quick-search"><CRMQuickLeadSearch user={user} /></RestrictedRoute>} />
+
+            {/* Backward-compatible redirects */}
+            <Route path="lead-generation" element={<Navigate to="/lead-generation/dashboard" replace />} />
+            <Route path="task-manager" element={<Navigate to="/lead-generation/my-work" replace />} />
+            <Route path="new-segment" element={<Navigate to="/lead-generation/segments" replace />} />
             <Route
               path="courier-tracking"
               element={
@@ -253,9 +281,9 @@ const RestrictedRoute = ({ children, path }) => {
                 </RestrictedRoute>
               }
             />
-           
-           <Route path="campaigns/:id" element={<RestrictedRoute path="/campaigns/:id"><CampaignView/></RestrictedRoute>} />
-            <Route path="track-map" element={<RestrictedRoute path="/track-map"><TrackMap/></RestrictedRoute>} />
+
+            <Route path="campaigns/:id" element={<RestrictedRoute path="/campaigns/:id"><CampaignView /></RestrictedRoute>} />
+            <Route path="track-map" element={<RestrictedRoute path="/track-map"><TrackMap /></RestrictedRoute>} />
             <Route path="remove-data" element={<RestrictedRoute path="/remove-data"><RemoveData /></RestrictedRoute>} />
             <Route path="add-role" element={<RestrictedRoute path="/add-role"><AddRole /></RestrictedRoute>} />
             <Route path="report-dashboard" element={<RestrictedRoute path="/report-dashboard"><ReportDashboard /></RestrictedRoute>} />
@@ -277,28 +305,28 @@ const RestrictedRoute = ({ children, path }) => {
             <Route path="edit-warehouse/:id" element={<RestrictedRoute path="/edit-warehouse/:id"><EditWarehouse /></RestrictedRoute>} />
             <Route path="create-permission" element={<RestrictedRoute path="/create-permission"><CreatePermission /></RestrictedRoute>} />
             <Route path="add-permission" element={<RestrictedRoute path="/add-permission"><AddPermission /></RestrictedRoute>} />
-            <Route path="add-company" element={<RestrictedRoute path="/add-company"><Company/></RestrictedRoute>} />
-            <Route path="report-settings" element={<RestrictedRoute path="/report-settings"><ReportSettings/></RestrictedRoute>} />
-            <Route path="reports/:id" element={<RestrictedRoute path="/reports/:id"><ViewReport/></RestrictedRoute>} />
-            <Route path="edit-report/:id" element={<RestrictedRoute path="/edit-report/:id"><EditReport/></RestrictedRoute>} />
-            <Route path="create-report" element={<RestrictedRoute path="/create-report"><CreateReport/></RestrictedRoute>} />
-            <Route path="static-report" element={<RestrictedRoute path="/static-report"><StaticReport/></RestrictedRoute>} />
+            <Route path="add-company" element={<RestrictedRoute path="/add-company"><Company /></RestrictedRoute>} />
+            <Route path="report-settings" element={<RestrictedRoute path="/report-settings"><ReportSettings /></RestrictedRoute>} />
+            <Route path="reports/:id" element={<RestrictedRoute path="/reports/:id"><ViewReport /></RestrictedRoute>} />
+            <Route path="edit-report/:id" element={<RestrictedRoute path="/edit-report/:id"><EditReport /></RestrictedRoute>} />
+            <Route path="create-report" element={<RestrictedRoute path="/create-report"><CreateReport /></RestrictedRoute>} />
+            <Route path="static-report" element={<RestrictedRoute path="/static-report"><StaticReport /></RestrictedRoute>} />
 
-            
+
 
 
 
             <Route
-  path="companies/edit/:id"
-  element={
-    <RestrictedRoute path="/companies/edit/:id">
-      <EditCompany />
-    </RestrictedRoute>
-  }
-/>
+              path="companies/edit/:id"
+              element={
+                <RestrictedRoute path="/companies/edit/:id">
+                  <EditCompany />
+                </RestrictedRoute>
+              }
+            />
 
             <Route path="edit-user/:id" element={<RestrictedRoute path="/edit-user/:id"><EditUser /></RestrictedRoute>} />
-            <Route path="change-password" element={<RestrictedRoute path="/change-password"><ChangePassword/></RestrictedRoute>} />
+            <Route path="change-password" element={<RestrictedRoute path="/change-password"><ChangePassword /></RestrictedRoute>} />
             <Route path="*" element={<div className="p-8 text-center">Page Not Found</div>} />
           </Route>
         </Routes>

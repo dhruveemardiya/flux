@@ -30,21 +30,19 @@ class User(AbstractBaseUser):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     role = models.CharField(max_length=100)
-    last_login = None  
+    last_login = None
     companies = models.ManyToManyField(
         'Company',
         blank=True,
         related_name='users'
     )
     created_by = models.ForeignKey(
-    'self',
-    null=True,
-    blank=True,
-    on_delete=models.SET_NULL,
-    related_name='created_users'
-)
-
-
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='created_users'
+    )
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -126,7 +124,7 @@ class Product(models.Model):
         return f"{self.product_name} ({self.company.name})"
 
 
-    
+
 
 class ProductWarehouse(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -173,7 +171,7 @@ class ProductStock(models.Model):
         co_name = getattr(self.company, 'name', 'Company') if self.company else 'Company'
         return f"{prod_name} @ {wh_name} on {self.date} ({co_name})"
 
-    
+
 
 
 class ShowPrevDateSetting(models.Model):
@@ -198,6 +196,7 @@ class Permission(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class PermissionAssignment(models.Model):
@@ -230,6 +229,7 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class Customer(models.Model):
@@ -349,7 +349,7 @@ class CampaignLead(models.Model):
 
     def __str__(self):
         return f"{self.campaign.name} - {self.first_name} {self.last_name}".strip()
-    
+
 
 class CampaignLeadAttempt(models.Model):
     lead = models.ForeignKey(CampaignLead, on_delete=models.CASCADE, related_name='attempts')
@@ -378,8 +378,8 @@ class SavedReport(models.Model):
     column_header = models.CharField(max_length=100)
     filters = models.JSONField()  # store filters as JSON
     filter_values = models.JSONField(default=dict)
-    row_values = models.JSONField(default=list)     # ✅ Selected values for row header
-    column_values = models.JSONField(default=list) 
+    row_values = models.JSONField(default=list)     # âœ… Selected values for row header
+    column_values = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     hidden = models.BooleanField(default=False)
 
@@ -398,6 +398,7 @@ class Lead(models.Model):
     company_name = models.CharField(max_length=255, blank=True, default='')
     first_name = models.CharField(max_length=150, blank=True, default='')
     last_name = models.CharField(max_length=150, blank=True, default='')
+    designation = models.CharField(max_length=150, blank=True, default='')
     email = models.CharField(max_length=255, blank=True, default='', db_index=True)
     secondary_email = models.CharField(max_length=255, blank=True, default='')
     phone = models.CharField(max_length=50, blank=True, default='', db_index=True)
@@ -416,6 +417,8 @@ class Lead(models.Model):
     rating = models.CharField(max_length=50, blank=True, default='')
     notes = models.TextField(blank=True, default='')
     raw_data = models.JSONField(default=dict, blank=True)
+    lead_source = models.CharField(max_length=100, blank=True, default='')
+    custom_fields = models.JSONField(default=dict, blank=True)
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_LEAD, db_index=True)
     status_updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='status_updated_leads')
@@ -744,3 +747,9 @@ class Segment(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# =============================================================================
+# Custom CRM Models (Extended inside existing Lead Generation module)
+# =============================================================================
+from .crm_models import *

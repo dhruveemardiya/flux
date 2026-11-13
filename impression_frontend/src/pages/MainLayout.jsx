@@ -12,7 +12,7 @@
 // import { toast, ToastContainer } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
 // export default function MainLayout({ user }) {
-  
+
 //   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
 //   const [darkMode, setDarkMode] = useState(false);
 //   const [permissionsOpen, setPermissionsOpen] = useState(false);
@@ -95,7 +95,7 @@
 //     { icon: FaBuilding, text: "Company", path: "/company" },
 
 //     { icon: FaUserShield, text: "Users", path: "/users" },
-    
+
 //     { 
 //       icon: FaTools, 
 //       text: "Permissions", 
@@ -164,7 +164,7 @@
 //       }
 //     }
 //   };
-  
+
 
 
 
@@ -193,7 +193,7 @@
 //           ${isMobile ? (sidebarOpen ? "w-3/4 translate-x-0" : "w-full -translate-x-full") : (sidebarOpen ? "w-64" : "w-17")}`}
 //       >
 
-        
+
 //         {/* Sidebar Header (with Close Button on Mobile) */}
 //         <div className="flex items-center justify-between mb-6">
 
@@ -342,11 +342,11 @@
 //       </div>
 
 //       {/* Main Content */}
-      // <div
-      //   className={`flex-1 flex flex-col bg-gray-100 dark:bg-gray-800 transition-all duration-500 ease-in-out ${
-      //     isMobile ? "" : sidebarOpen ? "ml-64" : "ml-16"
-      //   }`}
-      // >
+// <div
+//   className={`flex-1 flex flex-col bg-gray-100 dark:bg-gray-800 transition-all duration-500 ease-in-out ${
+//     isMobile ? "" : sidebarOpen ? "ml-64" : "ml-16"
+//   }`}
+// >
 //         {/* Header */}
 //         <div className="sticky top-0 z-40 w-full bg-white dark:bg-gray-900 shadow-lg px-6 py-4">
 //           <div className="flex justify-between items-center">
@@ -358,7 +358,7 @@
 //             </button>
 
 //             <div className="flex items-center gap-4">
-            
+
 
 //               <button
 //                 onClick={() => setDarkMode(!darkMode)}
@@ -388,23 +388,23 @@
 //         </div>
 
 //         {/* Footer */}
-        // <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-4 px-6 shadow-inner mt-auto">
-        //   <div className="flex justify-between items-center">
-        //     <div>
-        //     <p className="text-center sm:text-left">© {new Date().getFullYear()} All rights reserved | Powered by Technoadviser Private Limited</p>
+// <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-4 px-6 shadow-inner mt-auto">
+//   <div className="flex justify-between items-center">
+//     <div>
+//     <p className="text-center sm:text-left">© {new Date().getFullYear()} All rights reserved | Powered by Technoadviser Private Limited</p>
 
-        //     </div>
-        //   </div>
-        // </footer>
+//     </div>
+//   </div>
+// </footer>
 //       </div>
 
 //       {/* Overlay for Mobile (to close sidebar on tap outside) */}
-      // {isMobile && sidebarOpen && (
-      //   <div
-      //     className="fixed inset-0 bg-black bg-opacity-50 z-40"
-      //     onClick={toggleSidebar}
-      //   />
-      // )}
+// {isMobile && sidebarOpen && (
+//   <div
+//     className="fixed inset-0 bg-black bg-opacity-50 z-40"
+//     onClick={toggleSidebar}
+//   />
+// )}
 //     </div>
 //   );
 // }
@@ -418,7 +418,8 @@ import {
   FaPlus, FaCheckSquare, FaUserPlus, FaUserShield, FaTools,
   FaTimes, FaBuilding,
   FaCog, FaAddressCard, FaMapMarkerAlt, FaUserFriends,
-  FaBell, FaTasks, FaLayerGroup
+  FaBell, FaTasks, FaLayerGroup,
+  FaTachometerAlt, FaUserCheck, FaUserTag, FaBriefcase, FaSearch
 } from "react-icons/fa";
 import axios from "axios";
 import BASE_URL from "./config";
@@ -546,7 +547,7 @@ export default function MainLayout({ user: propUser }) {
       key: "campaign",
       title: "Campaign",
       icon: FaAddressCard,
-        items: [
+      items: [
         { icon: FaDatabase, text: "Data Mapping", path: "/data-mapping" },
         { icon: FaAddressCard, text: "Campaign", path: "/campaign" },
         { icon: FaAddressCard, text: "Courier Tracking", path: "/courier-tracking" },
@@ -558,9 +559,9 @@ export default function MainLayout({ user: propUser }) {
       user?.role === "User"
         ? [{ icon: FaKey, text: "Change Password", path: "/change-password" }]
         : [
-            { icon: FaUserShield, text: "Users", path: "/users" },
-            { icon: FaKey, text: "Change Password", path: "/change-password" },
-          ];
+          { icon: FaUserShield, text: "Users", path: "/users" },
+          { icon: FaKey, text: "Change Password", path: "/change-password" },
+        ];
 
     const inventorySection = (() => {
       if (user?.role === "techadmin") {
@@ -643,9 +644,17 @@ export default function MainLayout({ user: propUser }) {
       title: "Lead Generation",
       icon: FaUserFriends,
       items: [
-        { icon: FaUserFriends, text: "Lead Generation", path: "/lead-generation" },
-        { icon: FaTasks, text: "Task Manager", path: "/task-manager" },
-        { icon: FaLayerGroup, text: "New Segment", path: "/new-segment" },
+        { icon: FaTachometerAlt, text: "CRM Dashboard", path: "/lead-generation/dashboard" },
+        { icon: FaUserShield, text: "User & Role Management", path: "/lead-generation/users" },
+        // Temporarily hidden: Login Approval & Access Logs not required in current release
+        // { icon: FaUserCheck, text: "Login Approval & Logs", path: "/lead-generation/access-logs" },
+        { icon: FaLayerGroup, text: "Segment Management", path: "/lead-generation/segments" },
+        { icon: FaUserFriends, text: "Lead Management", path: "/lead-generation/leads" },
+        { icon: FaUserTag, text: "Lead Assignment", path: "/lead-generation/assignments" },
+        { icon: FaTasks, text: "Task Management", path: "/lead-generation/tasks" },
+        { icon: FaBriefcase, text: "My Work Dashboard", path: "/lead-generation/my-work" },
+        { icon: FaChartBar, text: "Performance Reports", path: "/lead-generation/reports" },
+        { icon: FaSearch, text: "Quick Lead Search", path: "/lead-generation/quick-search" },
       ],
     };
 
@@ -750,16 +759,16 @@ export default function MainLayout({ user: propUser }) {
         {/* Sidebar Header (with Close Button on Mobile) */}
         <div className="flex items-center justify-between mb-6">
           {selectedCompany?.logo && (
-          <img
-  src={resolveMediaUrl(selectedCompany.logo)}
-  alt="Company Logo"
-  className={`
+            <img
+              src={resolveMediaUrl(selectedCompany.logo)}
+              alt="Company Logo"
+              className={`
     transition-all duration-300 ease-in-out
     object-contain
     transform
     ${isMobile ? "w-48" : sidebarOpen ? "w-40 max-h-[100px]" : "w-12 max-h-[40px]"}
   `}
-/>
+            />
 
           )}
 
@@ -775,25 +784,25 @@ export default function MainLayout({ user: propUser }) {
 
         <hr className="border-gray-600 mb-4" />
 
-{(sidebarOpen || isMobile) && user?.role === "superadmin" && user?.companies?.length >= 0 && (
-  <div className="mb-4 text-sm">
-    <label className="block mb-2 text-white text-md">SELECT BRANCH </label>
-    <select
-      value={selectedCompany?.id || ""}
-      onChange={(e) => {
-        const comp = companies.find((c) => c.id.toString() === e.target.value);
-        setSelectedCompany(comp);
-      }}
-      className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
-    >
-      {companies.map((company) => (
-        <option key={company.id} value={company.id}>
-          {company.name}
-        </option>
-      ))}
-    </select>
-  </div>
-)}
+        {(sidebarOpen || isMobile) && user?.role === "superadmin" && user?.companies?.length >= 0 && (
+          <div className="mb-4 text-sm">
+            <label className="block mb-2 text-white text-md">SELECT BRANCH </label>
+            <select
+              value={selectedCompany?.id || ""}
+              onChange={(e) => {
+                const comp = companies.find((c) => c.id.toString() === e.target.value);
+                setSelectedCompany(comp);
+              }}
+              className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+            >
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
 
 
@@ -828,7 +837,7 @@ export default function MainLayout({ user: propUser }) {
                               type="button"
                               onClick={() => {
                                 if (onClick) {
-                                  onClick({ preventDefault: () => {} });
+                                  onClick({ preventDefault: () => { } });
                                 }
                               }}
                               className="flex items-center gap-3 rounded-md p-2 text-left transition-colors hover:bg-gray-700"
@@ -840,9 +849,8 @@ export default function MainLayout({ user: propUser }) {
                             <Link
                               to={destination}
                               onClick={(event) => handleLeafClick(event, onClick)}
-                              className={`flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-gray-700 ${
-                                isActive ? "bg-gray-700 font-semibold" : ""
-                              }`}
+                              className={`flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-gray-700 ${isActive ? "bg-gray-700 font-semibold" : ""
+                                }`}
                             >
                               <ItemIcon />
                               <span className="truncate">{text}</span>
@@ -856,9 +864,8 @@ export default function MainLayout({ user: propUser }) {
                                   key={`${subPath}-${subIdx}`}
                                   to={subPath}
                                   onClick={(event) => handleLeafClick(event)}
-                                  className={`flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-gray-700 ${
-                                    currentPath === subPath ? "bg-gray-700 font-semibold" : ""
-                                  }`}
+                                  className={`flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-gray-700 ${currentPath === subPath ? "bg-gray-700 font-semibold" : ""
+                                    }`}
                                 >
                                   <SubIcon />
                                   <span>{subText}</span>
@@ -876,17 +883,16 @@ export default function MainLayout({ user: propUser }) {
           })}
         </nav>
 
-       
+
       </div>
 
       {/* Main Content */}
-    <div
-        className={`flex-1 flex flex-col bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-in-out ${
-          isMobile ? "" : sidebarOpen ? "ml-64" : "ml-16"
-        }`}
+      <div
+        className={`flex-1 flex flex-col bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-in-out ${isMobile ? "" : sidebarOpen ? "ml-64" : "ml-16"
+          }`}
       >
         {/* Top Navbar */}
-         <div className="sticky top-0 z-40 w-full bg-white dark:bg-gray-900 shadow-lg px-6 py-4">
+        <div className="sticky top-0 z-40 w-full bg-white dark:bg-gray-900 shadow-lg px-6 py-4">
           <div className="flex justify-between items-center">
             <button
               onClick={toggleSidebar}
@@ -965,11 +971,10 @@ export default function MainLayout({ user: propUser }) {
                                 <p className="font-bold text-xs text-gray-900 dark:text-white truncate">
                                   {n.company_name}
                                 </p>
-                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                                  n.is_overdue ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300' :
-                                  n.is_due_today ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' :
-                                  'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
-                                }`}>
+                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${n.is_overdue ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300' :
+                                    n.is_due_today ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' :
+                                      'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                                  }`}>
                                   {n.is_overdue ? 'Overdue' : n.is_due_today ? 'Due Today' : `Due ${n.next_followup_date}`}
                                 </span>
                               </div>
@@ -1030,10 +1035,10 @@ export default function MainLayout({ user: propUser }) {
         </main>
 
         {/* Footer */}
-         <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-4 px-6 shadow-inner mt-auto">
+        <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-4 px-6 shadow-inner mt-auto">
           <div className="flex justify-between items-center">
             <div>
-            <p className="text-center sm:text-left">© {new Date().getFullYear()} All rights reserved | Powered by Technoadviser Private Limited</p>
+              <p className="text-center sm:text-left">© {new Date().getFullYear()} All rights reserved | Powered by Technoadviser Private Limited</p>
 
             </div>
           </div>
@@ -1041,11 +1046,11 @@ export default function MainLayout({ user: propUser }) {
 
 
         {isMobile && sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={toggleSidebar}
-        />
-      )}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={toggleSidebar}
+          />
+        )}
       </div>
 
       <ToastContainer position="bottom-right" />
