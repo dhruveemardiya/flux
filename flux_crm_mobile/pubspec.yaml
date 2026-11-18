@@ -1,0 +1,50 @@
+name: flux_crm_mobile
+description: "Flux CRM Mobile - Enterprise Mobile Application for CRM Module connecting to Django REST Framework backend."
+publish_to: 'none' # Private enterprise app
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Networking & REST API
+  dio: ^5.4.3+1
+  http_parser: ^4.0.2
+
+  # State Management & DI
+  provider: ^6.1.2
+
+  # Routing & Navigation
+  go_router: ^14.1.4
+
+  # Secure Storage & Session Persistence
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.2.3
+
+  # Formatting & Date Utilities
+  intl: ^0.19.0
+
+  # File Picking for Excel Import
+  file_picker: ^8.0.5
+
+  # UI Enhancement & Visuals
+  fl_chart: ^0.68.0
+  flutter_spinkit: ^5.2.1
+  url_launcher: ^6.2.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.2
+
+flutter:
+  uses-material-design: true
+
+  # Asset bundle definitions
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
