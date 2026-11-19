@@ -55,11 +55,12 @@ from .crm_views import (
     crm_my_work_api, crm_my_work_activities_api, crm_my_work_activity_detail_api, crm_my_work_followups_api,
     crm_activity_update_api,
     crm_performance_reports_api, crm_reports_staff_api, crm_reports_task_groups_api, crm_reports_segments_api, crm_reports_export_api,
-    crm_quick_search_api, crm_lead_timeline_api, crm_lead_communications_api,
+    crm_quick_search_api, crm_lead_timeline_api, crm_lead_communications_api, crm_communications_general_api,
     crm_dashboard_summary_api,
     crm_leads_api, crm_lead_detail_api, crm_leads_search_api,
     crm_lead_import_upload_api, crm_lead_import_validate_duplicates_api, crm_lead_import_commit_api,
-    crm_lead_import_preview_api, crm_lead_import_failed_rows_api, crm_import_history_api
+    crm_lead_import_preview_api, crm_lead_import_failed_rows_api, crm_import_history_api,
+    crm_staff_users_api
 )
 
 company_list = CompanyViewSet.as_view({
@@ -212,10 +213,12 @@ urlpatterns = [
     # Custom CRM Endpoints (Inside Lead Generation Module)
     # -------------------------------------------------------------
     path('crm/dashboard/summary/', crm_dashboard_summary_api, name='crm_dashboard_summary_api'),
+    path('crm/dashboard/', crm_dashboard_summary_api, name='crm_dashboard_api'),
 
     # User & Role Management (Part 4)
     path('crm/users/', crm_users_api, name='crm_users_api'),
     path('crm/users/<int:user_id>/', crm_user_detail_api, name='crm_user_detail_api'),
+    path('crm/staff-users/', crm_staff_users_api, name='crm_staff_users_api'),
     path('crm/roles/', crm_roles_api, name='crm_roles_api'),
     path('crm/roles/<int:role_id>/', crm_role_detail_api, name='crm_role_detail_api'),
     path('crm/permissions/', crm_permissions_get_api, name='crm_permissions_get_api'),
@@ -259,6 +262,8 @@ urlpatterns = [
     path('crm/task-groups/<int:task_group_id>/', crm_task_group_detail_api, name='crm_task_group_detail_api'),
     path('crm/task-groups/<int:task_group_id>/assign/', crm_task_group_assign_api, name='crm_task_group_assign_api'),
     path('crm/task-groups/<int:task_group_id>/associate-leads/', crm_task_group_associate_leads_api, name='crm_task_group_associate_leads_api'),
+    path('crm/tasks/', crm_task_groups_api, name='crm_tasks_api'),
+    path('crm/tasks/<int:task_group_id>/', crm_task_group_detail_api, name='crm_task_detail_api'),
 
     # My Work Dashboard (Part 11)
     path('crm/my-work/', crm_my_work_api, name='crm_my_work_api'),
@@ -268,6 +273,7 @@ urlpatterns = [
     path('crm/my-work/follow-ups/', crm_my_work_followups_api, name='crm_my_work_followups_api'),
 
     # Performance Reports (Part 12)
+    path('crm/reports/', crm_performance_reports_api, name='crm_reports_api'),
     path('crm/reports/performance/', crm_performance_reports_api, name='crm_performance_reports_api'),
     path('crm/reports/staff/', crm_reports_staff_api, name='crm_reports_staff_api'),
     path('crm/reports/task-groups/', crm_reports_task_groups_api, name='crm_reports_task_groups_api'),
@@ -276,6 +282,7 @@ urlpatterns = [
 
     # Quick Lead Search & Communication Timeline (Part 13)
     path('crm/quick-search/', crm_quick_search_api, name='crm_quick_search_api'),
+    path('crm/communications/', crm_lead_timeline_api, name='crm_communications_general_api'),
     path('crm/leads/<int:lead_id>/timeline/', crm_lead_timeline_api, name='crm_lead_timeline_api'),
-    path('crm/leads/<int:lead_id>/communications/', crm_lead_communications_api, name='crm_lead_communications_api'),
+    path('crm/leads/<int:lead_id>/communications/', crm_lead_timeline_api, name='crm_lead_communications_api'),
 ]

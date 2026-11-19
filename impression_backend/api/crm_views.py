@@ -966,8 +966,11 @@ def crm_lead_assign_execute_api(request):
     if not _is_crm_admin(request.user) and not _has_crm_permission(request.user, 'assignments', 'assign'):
         return Response({'error': 'Permission denied. Only authorized staff can assign leads.'}, status=status.HTTP_403_FORBIDDEN)
 
-    lead_ids = request.data.get('lead_ids', [])
-    staff_ids = request.data.get('staff_ids', [])
+    raw_leads = request.data.get('lead_ids') or request.data.get('lead_id') or []
+    lead_ids = [raw_leads] if isinstance(raw_leads, (int, str)) else list(raw_leads)
+
+    raw_staff = request.data.get('staff_ids') or request.data.get('user_ids') or request.data.get('staff_id') or request.data.get('user_id') or []
+    staff_ids = [raw_staff] if isinstance(raw_staff, (int, str)) else list(raw_staff)
 
     if not lead_ids or not staff_ids:
         return Response({'error': 'Both lead_ids and staff_ids are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -1034,19 +1037,23 @@ def crm_lead_unassign_execute_api(request):
     if not _is_crm_admin(request.user):
         return Response({'error': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
 
-    lead_id = request.data.get('lead_id')
-    user_id = request.data.get('user_id')
+    raw_leads = request.data.get('lead_ids') or request.data.get('lead_id') or []
+    lead_ids = [raw_leads] if isinstance(raw_leads, (int, str)) else list(raw_leads)
+
+    raw_users = request.data.get('user_ids') or request.data.get('staff_ids') or request.data.get('user_id') or request.data.get('staff_id') or []
+    user_ids = [raw_users] if isinstance(raw_users, (int, str)) else list(raw_users)
 
     try:
-        LeadAssignment.objects.filter(lead_id=int(lead_id), user_id=int(user_id)).delete()
-        lead = Lead.objects.filter(id=int(lead_id)).first()
-        if lead and lead.assigned_to_id == int(user_id):
-            lead.assigned_to = None
-            lead.save(update_fields=['assigned_to'])
+        LeadAssignment.objects.filter(lead_id__in=[int(i) for i in lead_ids], user_id__in=[int(u) for u in user_ids]).delete()
+        for lid in lead_ids:
+            lead = Lead.objects.filter(id=int(lid)).first()
+            if lead and lead.assigned_to_id in [int(u) for u in user_ids]:
+                lead.assigned_to = None
+                lead.save(update_fields=['assigned_to'])
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({'message': 'Lead unassigned from user successfully.'})
+    return Response({'message': 'Lead(s) unassigned from user(s) successfully.'})
 
 
 # =============================================================================
@@ -1136,8 +1143,12 @@ def crm_task_groups_api(request):
     end_date = data.get('end_date') or timezone.now().date().isoformat()
     start_time = data.get('start_time') or None
     end_time = data.get('end_time') or None
-    staff_ids = data.get('staff_ids', [])
-    lead_ids = data.get('lead_ids', [])
+    raw_staff = data.get('staff_ids') or data.get('user_ids') or data.get('staff_id') or data.get('user_id') or []
+    staff_ids = [raw_staff] if isinstance(raw_staff, (int, str)) else list(raw_staff)
+
+    raw_leads = data.get('lead_ids') or data.get('lead_id') or []
+    lead_ids = [raw_leads] if isinstance(raw_leads, (int, str)) else list(raw_leads)
+
     attachment = data.get('attachment', '')
 
     if not title:
@@ -1203,6 +1214,15 @@ def crm_task_groups_api(request):
     return Response({
         'message': f"Task group created successfully with {len(staff_ids)} staff and {len(lead_ids)} leads.",
         'task_group_id': task_group.id,
+        'id': task_group.id,
+        'task_group': {
+            'id': task_group.id,
+            'title': task_group.title,
+            'priority': task_group.priority,
+            'status': task_group.status,
+            'start_date': _safe_iso_date(task_group.start_date),
+            'end_date': _safe_iso_date(task_group.end_date),
+        }
     }, status=status.HTTP_201_CREATED)
 
 
@@ -1581,7 +1601,7 @@ def crm_quick_search_api(request):
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
-def crm_lead_timeline_api(request, lead_id):
+def crm_lead_timeline_api(request, lead_id=None):
     """
     GET: Retrieve full 360° chronological communication timeline for a lead:
          Call notes, meeting notes, email notes, WhatsApp notes, task updates, follow-up history.
@@ -1591,9 +1611,19 @@ def crm_lead_timeline_api(request, lead_id):
     if not allowed:
         return Response({'error': err_msg}, status=status.HTTP_403_FORBIDDEN)
 
+    if lead_id is None:
+        lead_id = (
+            request.GET.get('lead_id')
+            or request.GET.get('lead')
+            or (request.data.get('lead_id') if hasattr(request, 'data') and isinstance(request.data, dict) else None)
+            or (request.data.get('lead') if hasattr(request, 'data') and isinstance(request.data, dict) else None)
+        )
+    if not lead_id:
+        return Response({'error': 'lead_id is required either in URL path or in query parameters/request body.'}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        lead = Lead.objects.prefetch_related('assignments__user').get(id=lead_id)
-    except Lead.DoesNotExist:
+        lead = Lead.objects.prefetch_related('assignments__user').get(id=int(lead_id))
+    except (Lead.DoesNotExist, ValueError, TypeError):
         return Response({'error': 'Lead not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     is_admin = _is_crm_admin(request.user)
@@ -1999,6 +2029,16 @@ def crm_leads_api(request):
     return Response({
         'message': 'Lead created successfully.',
         'lead_id': lead.id,
+        'id': lead.id,
+        'lead': {
+            'id': lead.id,
+            'company_name': lead.company_name,
+            'contact_person': f"{lead.first_name} {lead.last_name}".strip(),
+            'mobile': lead.mobile or lead.phone,
+            'email': lead.email,
+            'segment': lead.segment,
+            'status': lead.status,
+        }
     }, status=status.HTTP_201_CREATED)
 
 
@@ -2028,7 +2068,7 @@ def crm_lead_detail_api(request, lead_id):
             {'id': a.user.id, 'name': f"{a.user.first_name} {a.user.last_name}".strip() or a.user.username}
             for a in lead.assignments.all()
         ]
-        return Response({
+        lead_dict = {
             'id': lead.id,
             'company_name': lead.company_name,
             'first_name': lead.first_name,
@@ -2053,7 +2093,10 @@ def crm_lead_detail_api(request, lead_id):
             'custom_fields': getattr(lead, 'custom_fields', {}) or {},
             'assigned_staff': assignees,
             'created_at': lead.created_at.isoformat() if lead.created_at else None,
-        })
+        }
+        res_data = dict(lead_dict)
+        res_data['lead'] = lead_dict
+        return Response(res_data)
 
     if request.method == 'DELETE':
         if not is_admin and not _has_crm_permission(request.user, 'leads', 'delete'):
@@ -2658,7 +2701,7 @@ def crm_segment_detail_api(request, segment_id):
 @permission_classes([IsAuthenticated])
 def crm_leads_search_api(request):
     """GET /api/crm/leads/search/"""
-    return crm_leads_api(request)
+    return crm_leads_api(getattr(request, '_request', request))
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -3043,7 +3086,7 @@ def crm_task_group_associate_leads_api(request, task_group_id):
 @permission_classes([IsAuthenticated])
 def crm_my_work_activities_api(request):
     """GET /api/crm/my-work/activities/"""
-    return crm_my_work_api(request)
+    return crm_my_work_api(getattr(request, '_request', request))
 
 
 @api_view(['GET'])
@@ -3062,8 +3105,9 @@ def crm_my_work_activity_detail_api(request, activity_id):
     if act.user_id != request.user.id and not _is_crm_admin(request.user):
         return Response({'error': 'Permission denied. You can only view your own activities.'}, status=status.HTTP_403_FORBIDDEN)
 
-    return Response({
+    act_data = {
         'activity_id': act.id,
+        'id': act.id,
         'task_group_id': act.task_group_id,
         'task_title': act.task_group.title,
         'priority': act.task_group.priority,
@@ -3078,7 +3122,10 @@ def crm_my_work_activity_detail_api(request, activity_id):
         'next_followup_date': _safe_iso_date(act.next_followup_date),
         'next_followup_time': str(act.next_followup_time) if act.next_followup_time else None,
         'attachment': act.attachment,
-    })
+    }
+    res_data = dict(act_data)
+    res_data['activity'] = act_data
+    return Response(res_data)
 
 
 @api_view(['GET'])
@@ -3188,21 +3235,21 @@ def crm_reports_segments_api(request):
 @permission_classes([IsAuthenticated])
 def crm_reports_export_api(request):
     """POST /api/crm/reports/export/"""
-    return crm_performance_reports_api(request)
+    return crm_performance_reports_api(getattr(request, '_request', request))
 
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def crm_lead_communications_api(request, lead_id):
     """GET, POST /api/crm/leads/<id>/communications/"""
-    return crm_lead_timeline_api(request, lead_id)
+    return crm_lead_timeline_api(getattr(request, '_request', request), lead_id)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crm_lead_import_upload_api(request):
     """POST /api/crm/leads/import/upload/"""
-    return crm_lead_import_validate_duplicates_api(request)
+    return crm_lead_import_validate_duplicates_api(getattr(request, '_request', request))
 
 
 @api_view(['GET'])
@@ -3227,3 +3274,60 @@ def crm_lead_import_failed_rows_api(request, job_id):
 
     rows = LeadImportRow.objects.filter(job_id=job_id, resolution='SKIP')
     return Response({'failed_rows': [{'row_index': r.row_index, 'details': r.details} for r in rows]})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def crm_staff_users_api(request):
+    """
+    GET /api/crm/staff-users/
+    List assignable staff members for Task Group assignment and Lead assignment.
+    """
+    allowed, err_msg = _check_crm_access_permission(request.user)
+    if not allowed:
+        return Response({'error': err_msg}, status=status.HTTP_403_FORBIDDEN)
+
+    staff_qs = User.objects.filter(
+        Q(role__iexact='staff') | Q(role__iexact='admin') | Q(role__iexact='manager') | Q(role__iexact='sales')
+    ).exclude(crm_profile__account_status__iexact='Inactive').order_by('first_name', 'username')
+
+    staff_data = [
+        {
+            'id': u.id,
+            'username': u.username,
+            'first_name': u.first_name,
+            'last_name': u.last_name,
+            'full_name': f"{u.first_name} {u.last_name}".strip() or u.username,
+            'role': u.role,
+            'is_active': True,
+        }
+        for u in staff_qs
+    ]
+    return Response(staff_data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def crm_communications_general_api(request):
+    """
+    GET, POST /api/crm/communications/
+    General endpoint for communication history and logging.
+    Pass lead_id as query parameter (?lead_id=101) or in JSON request body ({"lead_id": 101, ...}).
+    """
+    lead_id = (
+        request.GET.get('lead_id')
+        or request.GET.get('lead')
+        or (request.data.get('lead_id') if hasattr(request, 'data') and isinstance(request.data, dict) else None)
+        or (request.data.get('lead') if hasattr(request, 'data') and isinstance(request.data, dict) else None)
+    )
+    if not lead_id:
+        return Response(
+            {'error': 'lead_id is required either in query parameters (?lead_id=) or in request body.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        lead_id = int(lead_id)
+    except (ValueError, TypeError):
+        return Response({'error': 'lead_id must be a valid integer.'}, status=status.HTTP_400_BAD_REQUEST)
+    return crm_lead_timeline_api(getattr(request, '_request', request), lead_id)
+
